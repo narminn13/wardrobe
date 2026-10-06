@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}
+Your Week
+{% endblock %}
+
+{% block content %}
+
+<div class="week-header">
+
+    <div>
+
+        <div class="eyebrow">
+            Weekly wardrobe
+        </div>
+
+        <h1 class="week-title">
+            Your week
+        </h1>
+
+        <div class="week-meta">
+
+            {{ plan.city }}
+
+            <span> · </span>
+
+            {{ plan.week_start }}
+
+        </div>
+
+    </div>
+
+
+    <a
+        href="{% url 'planner:create' %}"
+        class="btn btn-secondary"
+    >
+        New week
+    </a>
+
+</div>
+
+
+<div class="outfit-list">
+
+    {% for outfit in plan.outfits.all %}
+
+        <article class="outfit-card">
+
+            <div>
+
+                <div class="outfit-date">
+                    {{ outfit.date|date:"l" }}
+                </div>
+
+                <div class="small-text">
+                    {{ outfit.date|date:"d M" }}
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <div class="outfit-main-header">
+
+                    <div>
+
+                        <h2 class="outfit-title">
+                            {{ outfit.title }}
+                        </h2>
+
+                    </div>
+
+
+                    <div class="outfit-weather">
+
+                        {{ outfit.temperature_min|floatformat:0 }}°
+
+                        —
+
+                        {{ outfit.temperature_max|floatformat:0 }}°
+
+                        <br>
+
+                        {{ outfit.weather_summary }}
+
+                    </div>
+
+                </div>
+
+
+                {% if outfit.explanation %}
+
+                    <p class="outfit-explanation">
+                        {{ outfit.explanation }}
+                    </p>
+
+                {% endif %}
+
+
+                <div class="outfit-items">
+
+                    {% for item in outfit.items.all %}
+
+                        <div>
+
+                            <img
+                                src="{{ item.garment.image.url }}"
+                                class="outfit-item-image"
+                                alt="{{ item.garment.name }}"
+                            >
+
+                            <div class="outfit-item-name">
+                                {{ item.garment.name }}
+                            </div>
+
+                            <div class="outfit-item-role">
+                                {{ item.role }}
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+
+                        <div class="no-outfit">
+                            No garments selected.
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </article>
+
+    {% empty %}
+
+        <div class="empty-state">
+
+            <h2>
+                Nothing here yet.
+            </h2>
+
+            <p class="muted">
+                Create a plan to see your week.
+            </p>
+
+            <a
+                href="{% url 'planner:create' %}"
+                class="btn"
+            >
+                Create a week
+            </a>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

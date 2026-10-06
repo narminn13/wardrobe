@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Clothes
+{% endblock %}
+
+{% block content %}
+
+<div class="upload-layout">
+
+    <div class="upload-intro">
+
+        <div class="eyebrow">
+            New pieces
+        </div>
+
+        <h1>
+            Add to your wardrobe.
+        </h1>
+
+        <p>
+            Upload clear photos of the clothes you own.
+            The rest happens automatically.
+        </p>
+
+
+        <div class="upload-tips">
+
+            <div class="eyebrow">
+                Photo notes
+            </div>
+
+            <p>
+                One garment per image.
+            </p>
+
+            <p>
+                JPG, PNG or WEBP.
+            </p>
+
+            <p>
+                Up to 10 images.
+            </p>
+
+            <p>
+                Maximum 8 MB per image.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="upload-area">
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+            {{ form.non_field_errors }}
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Select images
+                </label>
+
+                {{ form.images }}
+
+                {{ form.images.errors }}
+
+            </div>
+
+
+            <div
+                id="uploadPreview"
+                class="upload-preview"
+            ></div>
+
+
+            <div class="upload-actions">
+
+                <button
+                    type="submit"
+                    class="btn"
+                    id="uploadButton"
+                >
+                    Add to wardrobe
+                </button>
+
+
+                <a
+                    href="{% url 'wardrobe:list' %}"
+                    class="btn btn-secondary"
+                >
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

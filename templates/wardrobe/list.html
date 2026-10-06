@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Wardrobe
+{% endblock %}
+
+{% block content %}
+
+<div class="page-section">
+
+    <div class="page-header">
+
+        <div>
+
+            <div class="eyebrow">
+                Collection
+            </div>
+
+            <h1>
+                My wardrobe
+            </h1>
+
+            <p class="muted">
+                {{ garments|length }}
+                item{{ garments|length|pluralize }}
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'wardrobe:upload' %}"
+            class="btn"
+        >
+            Add clothes
+        </a>
+
+    </div>
+
+
+    {% if garments %}
+
+        <div class="wardrobe-toolbar">
+
+            <div class="filter-links">
+
+                <a
+                    href="{% url 'wardrobe:list' %}"
+                    class="active"
+                >
+                    All
+                </a>
+
+                <span class="muted">
+                    Your collection
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="garment-grid">
+
+            {% for garment in garments %}
+
+                <a
+                    href="{% url 'wardrobe:detail' garment.pk %}"
+                    class="garment-card"
+                >
+
+                    <div class="garment-image-wrapper">
+
+                        <img
+                            src="{{ garment.image.url }}"
+                            class="garment-image"
+                            alt="{{ garment.name }}"
+                        >
+
+                    </div>
+
+
+                    <div class="garment-info">
+
+                        <div class="garment-name">
+                            {{ garment.name }}
+                        </div>
+
+                        <div class="garment-meta">
+
+                            {{ garment.get_category_display }}
+
+                            {% if garment.color %}
+                                · {{ garment.color }}
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if garment.status != "available" %}
+
+                            <div class="garment-status status-{{ garment.status }}">
+                                {{ garment.get_status_display }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="eyebrow">
+                Nothing here yet
+            </div>
+
+            <h2>
+                Start your wardrobe.
+            </h2>
+
+            <p class="muted">
+                Add a few pieces and build from there.
+            </p>
+
+            <a
+                href="{% url 'wardrobe:upload' %}"
+                class="btn"
+            >
+                Add clothes
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Account
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-visual">
+
+        <div class="auth-visual-content">
+
+            <div class="eyebrow">
+                A wardrobe made yours
+            </div>
+
+            <h1>
+                Start with what you own.
+            </h1>
+
+        </div>
+
+    </div>
+
+
+    <div class="auth-form-area">
+
+        <div class="auth-form">
+
+            <div class="eyebrow">
+                New here?
+            </div>
+
+            <h2>
+                Create account
+            </h2>
+
+            <p class="auth-form-description">
+                Build your personal wardrobe.
+            </p>
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {{ form.non_field_errors }}
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Email
+                    </label>
+
+                    {{ form.email }}
+
+                    {{ form.email.errors }}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        First name
+                    </label>
+
+                    {{ form.first_name }}
+
+                    {{ form.first_name.errors }}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Last name
+                    </label>
+
+                    {{ form.last_name }}
+
+                    {{ form.last_name.errors }}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Password
+                    </label>
+
+                    {{ form.password1 }}
+
+                    {{ form.password1.errors }}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Confirm password
+                    </label>
+
+                    {{ form.password2 }}
+
+                    {{ form.password2.errors }}
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn auth-submit"
+                >
+                    Create account
+                </button>
+
+            </form>
+
+
+            <p class="auth-footer">
+
+                Already have an account?
+
+                <a href="{% url 'accounts:login' %}">
+                    Sign in
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

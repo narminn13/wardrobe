@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+Wardrobe
+{% endblock %}
+
+{% block content %}
+
+<section class="home-hero">
+
+    <div class="home-copy">
+
+        <div class="eyebrow">
+            Your personal wardrobe
+        </div>
+
+        <h1>
+            Get dressed
+            <br>
+            without overthinking it.
+        </h1>
+
+        <p class="home-description">
+            Keep the clothes you love in one place and
+            plan what to wear around your week.
+        </p>
+
+
+        <div class="home-actions">
+
+            {% if user.is_authenticated %}
+
+                <a
+                    href="{% url 'wardrobe:list' %}"
+                    class="btn btn-large"
+                >
+                    Open wardrobe
+                </a>
+
+                <a
+                    href="{% url 'planner:create' %}"
+                    class="btn btn-secondary btn-large"
+                >
+                    Plan the week
+                </a>
+
+            {% else %}
+
+                <a
+                    href="{% url 'accounts:signup' %}"
+                    class="btn btn-large"
+                >
+                    Create account
+                </a>
+
+                <a
+                    href="{% url 'accounts:login' %}"
+                    class="btn btn-secondary btn-large"
+                >
+                    Sign in
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <div class="home-visual">
+
+        <div
+            class="home-visual-main"
+            style="
+                background:
+                linear-gradient(
+                    145deg,
+                    #d7d1c7,
+                    #aaa399
+                );
+            "
+        ></div>
+
+
+        <div class="home-visual-note">
+
+            <span>
+                Today
+            </span>
+
+            <strong>
+                Dress for the weather.
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="home-user-section">
+
+    <div class="home-section-grid">
+
+        <div class="home-section-item">
+
+            <span class="home-section-number">
+                01
+            </span>
+
+            <h3>
+                Your clothes
+            </h3>
+
+            <p class="muted">
+                Keep your wardrobe organised in one place.
+            </p>
+
+        </div>
+
+
+        <div class="home-section-item">
+
+            <span class="home-section-number">
+                02
+            </span>
+
+            <h3>
+                Your week
+            </h3>
+
+            <p class="muted">
+                See what makes sense for each day.
+            </p>
+
+        </div>
+
+
+        <div class="home-section-item">
+
+            <span class="home-section-number">
+                03
+            </span>
+
+            <h3>
+                Your style
+            </h3>
+
+            <p class="muted">
+                Build outfits from what you already own.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-visual">
+
+        <div class="auth-visual-content">
+
+            <div class="eyebrow">
+                Your wardrobe
+            </div>
+
+            <h1>
+                Dress for the day.
+            </h1>
+
+        </div>
+
+    </div>
+
+
+    <div class="auth-form-area">
+
+        <div class="auth-form">
+
+            <div class="eyebrow">
+                Welcome back
+            </div>
+
+            <h2>
+                Sign in
+            </h2>
+
+            <p class="auth-form-description">
+                Your wardrobe is waiting.
+            </p>
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {{ form.non_field_errors }}
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Email
+                    </label>
+
+                    {{ form.username }}
+
+                    {{ form.username.errors }}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Password
+                    </label>
+
+                    {{ form.password }}
+
+                    {{ form.password.errors }}
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn auth-submit"
+                >
+                    Sign in
+                </button>
+
+            </form>
+
+
+            <p class="auth-footer">
+
+                Don't have an account?
+
+                <a href="{% url 'accounts:signup' %}">
+                    Create one
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

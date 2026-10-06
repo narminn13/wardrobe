@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ garment.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="detail-layout">
+
+    <div>
+
+        <img
+            src="{{ garment.image.url }}"
+            class="detail-image"
+            alt="{{ garment.name }}"
+        >
+
+    </div>
+
+
+    <div class="detail-content">
+
+        <div class="detail-title-row">
+
+            <div>
+
+                <div class="eyebrow">
+                    {{ garment.get_category_display }}
+                </div>
+
+                <h1 class="detail-title">
+                    {{ garment.name }}
+                </h1>
+
+            </div>
+
+
+            <div class="detail-status">
+
+                {{ garment.get_status_display }}
+
+            </div>
+
+        </div>
+
+
+        <div class="detail-divider"></div>
+
+
+        <div class="detail-properties">
+
+            <div class="detail-property">
+
+                <span class="detail-property-label">
+                    Category
+                </span>
+
+                <span class="detail-property-value">
+                    {{ garment.get_category_display }}
+                </span>
+
+            </div>
+
+
+            <div class="detail-property">
+
+                <span class="detail-property-label">
+                    Style
+                </span>
+
+                <span class="detail-property-value">
+                    {{ garment.get_formality_display }}
+                </span>
+
+            </div>
+
+
+            <div class="detail-property">
+
+                <span class="detail-property-label">
+                    Color
+                </span>
+
+                <span class="detail-property-value">
+                    {{ garment.color|default:"—" }}
+                </span>
+
+            </div>
+
+
+            <div class="detail-property">
+
+                <span class="detail-property-label">
+                    Material
+                </span>
+
+                <span class="detail-property-value">
+                    {{ garment.material|default:"—" }}
+                </span>
+
+            </div>
+
+
+            <div class="detail-property">
+
+                <span class="detail-property-label">
+                    Pattern
+                </span>
+
+                <span class="detail-property-value">
+                    {{ garment.pattern|default:"—" }}
+                </span>
+
+            </div>
+
+
+            <div class="detail-property">
+
+                <span class="detail-property-label">
+                    Season
+                </span>
+
+                <span class="detail-property-value">
+                    {{ garment.season|default:"—" }}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        {% if garment.description %}
+
+            <div class="detail-description">
+
+                <div class="eyebrow">
+                    Details
+                </div>
+
+                <p>
+                    {{ garment.description }}
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+        {% if garment.weather_suitability %}
+
+            <div class="detail-description">
+
+                <div class="eyebrow">
+                    Works in
+                </div>
+
+                <div class="detail-tags">
+
+                    {% for item in garment.weather_suitability %}
+
+                        <span class="detail-tag">
+                            {{ item }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="detail-actions">
+
+            <form
+                method="post"
+                action="{% url 'wardrobe:toggle_availability' garment.pk %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-secondary"
+                >
+
+                    {% if garment.status == "available" %}
+                        Mark unavailable
+                    {% else %}
+                        Mark available
+                    {% endif %}
+
+                </button>
+
+            </form>
+
+
+            <form
+                method="post"
+                action="{% url 'wardrobe:archive' garment.pk %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-danger"
+                    onclick="return confirm('Archive this garment?')"
+                >
+                    Archive
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
