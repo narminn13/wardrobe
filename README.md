@@ -44,7 +44,6 @@ wardrobe_ai/
 ├── media/
 ├── manage.py
 └── requirements.txt
-
 How It Works
 1. The user creates an account.
 2. Clothing items are uploaded to the wardrobe.
@@ -54,32 +53,25 @@ How It Works
 6. Weather data is retrieved for the selected city.
 7. The application generates suitable outfits using the user's available garments and weather conditions.
 8. The generated weekly outfits are displayed in the planner.
-
 Setup
-Clone the repository:
+Clone the repository
 git clone https://github.com/narminhasanova/wardrobe-ai.git
 cd wardrobe-ai
-
-Create and activate a virtual environment:
+Create and activate a virtual environment
 python -m venv venv
 venv\Scripts\activate
-
-Install dependencies:
+Install dependencies
 pip install -r requirements.txt
-
-Create a .env file:
+Create a .env file
+Add your API credentials:
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=your_model
-
-Run migrations:
+Run migrations
 python manage.py migrate
-
-Start the development server:
+Start the development server
 python manage.py runserver
-
 Open:
 http://127.0.0.1:8000/
-
 Environment Variables
 The following environment variables are required:
 - OPENAI_API_KEY
@@ -95,4 +87,3 @@ Future Improvements
 - Production deployment
 Author
 Narmin Hasanova
-
