@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import os
 
@@ -13,6 +14,7 @@ SECRET_KEY = os.getenv(
     "SECRET_KEY",
     "django-insecure-change-this"
 )
+
 
 DEBUG = os.getenv(
     "DEBUG",
@@ -137,7 +139,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -150,55 +152,10 @@ STATICFILES_STORAGE = (
 )
 
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-AUTH_USER_MODEL = "accounts.User"
-
-
-LOGIN_URL = "accounts:login"
-
-LOGIN_REDIRECT_URL = "accounts:home"
-
-
-OPENAI_API_KEY = os.getenv(
-    "OPENAI_API_KEY",
-    ""
-)
-
-OPENAI_MODEL = os.getenv(
-    "OPENAI_MODEL",
-    "gpt-5.5"
-)
-
-
-WEATHER_API_URL = os.getenv(
-    "WEATHER_API_URL",
-    "https://api.open-meteo.com/v1/forecast"
-)
-
-
-MAX_UPLOAD_SIZE = 8 * 1024 * 1024
-
-MAX_GARMENTS_PER_UPLOAD = 10
-
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-
-DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
-
-
-if not DEBUG:
-
-    SECURE_PROXY_SSL_HEADER = (
-        "HTTP_X_FORWARDED_PROTO",
-        "https",
-    )
-
-    SESSION_COOKIE_SECURE = True
-
-    CSRF_COOKIE_SECURE = True
