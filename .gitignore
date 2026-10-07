@@ -13,3 +13,4 @@ staticfiles/
 .idea/
 
 *.log
+sqlite_data.json
