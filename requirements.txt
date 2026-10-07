@@ -3,3 +3,6 @@ openai
 requests
 Pillow
 python-dotenv
+gunicorn
+whitenoise
+psycopg2-binary
