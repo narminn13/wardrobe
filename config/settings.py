@@ -101,6 +101,20 @@ DATABASES = {
     }
 }
 
+OPENAI_API_KEY = os.getenv(
+    "OPENAI_API_KEY",
+    ""
+)
+
+OPENAI_MODEL = os.getenv(
+    "OPENAI_MODEL",
+    "gpt-5.5"
+)
+
+WEATHER_API_URL = os.getenv(
+    "WEATHER_API_URL",
+    "https://api.open-meteo.com/v1/forecast"
+)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
