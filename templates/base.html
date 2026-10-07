@@ -2,7 +2,9 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -20,11 +22,18 @@
         rel="stylesheet"
         href="{% static 'css/style.css' %}"
     >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/modern.css' %}"
+    >
+
 </head>
+
 
 <body>
 
-<nav class="site-nav">
+<nav class="site-nav modern-nav">
 
     <div class="nav-inner">
 
@@ -35,6 +44,7 @@
             WARDROBE
         </a>
 
+
         <div class="nav-links">
 
             {% if user.is_authenticated %}
@@ -43,11 +53,36 @@
                     Wardrobe
                 </a>
 
+                <a href="{% url 'planner:current' %}">
+                    Current week
+                </a>
+
                 <a href="{% url 'planner:create' %}">
                     Planner
                 </a>
 
-                <a href="{% url 'accounts:logout' %}">
+
+                <div class="nav-user">
+
+                    <span class="nav-user-label">
+                        Signed in as
+                    </span>
+
+                    <strong>
+                        {% if user.first_name %}
+                            {{ user.first_name }}
+                        {% else %}
+                            {{ user.email }}
+                        {% endif %}
+                    </strong>
+
+                </div>
+
+
+                <a
+                    href="{% url 'accounts:logout' %}"
+                    class="nav-logout"
+                >
                     Logout
                 </a>
 
@@ -116,4 +151,5 @@
 {% endblock %}
 
 </body>
+
 </html>

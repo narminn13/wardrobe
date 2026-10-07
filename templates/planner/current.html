@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-Weekly Outfits
+Current Week
 {% endblock %}
 
 {% block content %}
@@ -13,11 +13,11 @@ Weekly Outfits
         <div>
 
             <div class="eyebrow">
-                WEEKLY OUTFITS
+                CURRENT WEEK
             </div>
 
             <h1>
-                Your week.
+                What you're wearing.
             </h1>
 
             <p>
@@ -32,10 +32,10 @@ Weekly Outfits
 
 
         <a
-            href="{% url 'accounts:home' %}"
+            href="{% url 'planner:create' %}"
             class="modern-btn modern-btn-light"
         >
-            Back home
+            New plan
         </a>
 
     </header>
@@ -117,6 +117,7 @@ Weekly Outfits
 
                             {% endif %}
 
+
                             <div class="outfit-image-info">
 
                                 <strong>
@@ -131,6 +132,12 @@ Weekly Outfits
 
                         </div>
 
+                    {% empty %}
+
+                        <div class="outfit-no-items">
+                            No garments selected.
+                        </div>
+
                     {% endfor %}
 
                 </div>
@@ -141,9 +148,20 @@ Weekly Outfits
 
             <div class="current-week-empty">
 
+                <div class="eyebrow">
+                    NO OUTFITS
+                </div>
+
                 <h2>
-                    No outfits found.
+                    Nothing has been generated yet.
                 </h2>
+
+                <a
+                    href="{% url 'planner:create' %}"
+                    class="modern-btn modern-btn-primary"
+                >
+                    Generate outfits
+                </a>
 
             </div>
 

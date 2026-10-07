@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .forms import WeeklyPlanForm
 from .models import WeeklyPlan
@@ -82,6 +85,57 @@ def create_plan(request):
 
 
 @login_required
+def current_week(request):
+    today = timezone.localdate()
+
+    plans = (
+        WeeklyPlan.objects
+        .filter(
+            user=request.user,
+            status=WeeklyPlan.STATUS_GENERATED,
+            week_start__lte=today,
+        )
+        .prefetch_related(
+            "outfits__items__garment"
+        )
+        .order_by("-week_start")
+    )
+
+    active_plan = None
+
+    for plan in plans:
+        week_end = plan.week_start + timedelta(days=6)
+
+        if plan.week_start <= today <= week_end:
+            active_plan = plan
+            break
+
+    if active_plan is None:
+        messages.info(
+            request,
+            "You don't have a current weekly outfit plan yet.",
+        )
+
+        return redirect(
+            "planner:create"
+        )
+
+    week_end = (
+        active_plan.week_start
+        + timedelta(days=6)
+    )
+
+    return render(
+        request,
+        "planner/current.html",
+        {
+            "plan": active_plan,
+            "week_end": week_end,
+        },
+    )
+
+
+@login_required
 def weekly_plan(request, pk):
     plan = get_object_or_404(
         WeeklyPlan.objects.prefetch_related(
@@ -91,8 +145,32 @@ def weekly_plan(request, pk):
         user=request.user,
     )
 
+    today = timezone.localdate()
+
+    week_end = (
+        plan.week_start
+        + timedelta(days=6)
+    )
+
+    if (
+        today < plan.week_start
+        or today > week_end
+        or plan.status != WeeklyPlan.STATUS_GENERATED
+    ):
+        messages.info(
+            request,
+            "This weekly outfit plan is no longer active.",
+        )
+
+        return redirect(
+            "accounts:home"
+        )
+
     return render(
         request,
         "planner/weekly.html",
-        {"plan": plan},
+        {
+            "plan": plan,
+            "week_end": week_end,
+        },
     )

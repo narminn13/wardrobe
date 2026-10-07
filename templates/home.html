@@ -6,155 +6,281 @@ Wardrobe
 
 {% block content %}
 
-<section class="home-hero">
+<div class="modern-home">
 
-    <div class="home-copy">
+    <section class="home-dashboard">
 
-        <div class="eyebrow">
-            Your personal wardrobe
-        </div>
+        <div class="home-dashboard-copy">
 
-        <h1>
-            Get dressed
-            <br>
-            without overthinking it.
-        </h1>
-
-        <p class="home-description">
-            Keep the clothes you love in one place and
-            plan what to wear around your week.
-        </p>
+            <div class="eyebrow">
+                PERSONAL WARDROBE
+            </div>
 
 
-        <div class="home-actions">
+            <h1>
+
+                {% if user.is_authenticated %}
+
+                    Good to see you,
+                    <br>
+
+                    <span>
+                        {% if user.first_name %}
+                            {{ user.first_name }}
+                        {% else %}
+                            there
+                        {% endif %}
+                    </span>
+
+                {% else %}
+
+                    Get dressed
+                    <br>
+
+                    <span>
+                        without overthinking it.
+                    </span>
+
+                {% endif %}
+
+            </h1>
+
+
+            <p>
+                Keep your wardrobe organised and let the weather
+                guide what you wear next.
+            </p>
+
 
             {% if user.is_authenticated %}
 
-                <a
-                    href="{% url 'wardrobe:list' %}"
-                    class="btn btn-large"
-                >
-                    Open wardrobe
-                </a>
+                <div class="home-dashboard-actions">
 
-                <a
-                    href="{% url 'planner:create' %}"
-                    class="btn btn-secondary btn-large"
-                >
-                    Plan the week
-                </a>
+                    <a
+                        href="{% url 'wardrobe:list' %}"
+                        class="modern-btn modern-btn-primary"
+                    >
+                        Open wardrobe
+                    </a>
+
+                    <a
+                        href="{% url 'planner:create' %}"
+                        class="modern-btn modern-btn-light"
+                    >
+                        Plan a week
+                    </a>
+
+                </div>
 
             {% else %}
 
-                <a
-                    href="{% url 'accounts:signup' %}"
-                    class="btn btn-large"
-                >
-                    Create account
-                </a>
+                <div class="home-dashboard-actions">
 
-                <a
-                    href="{% url 'accounts:login' %}"
-                    class="btn btn-secondary btn-large"
-                >
-                    Sign in
-                </a>
+                    <a
+                        href="{% url 'accounts:signup' %}"
+                        class="modern-btn modern-btn-primary"
+                    >
+                        Create account
+                    </a>
+
+                    <a
+                        href="{% url 'accounts:login' %}"
+                        class="modern-btn modern-btn-light"
+                    >
+                        Sign in
+                    </a>
+
+                </div>
 
             {% endif %}
 
         </div>
 
-    </div>
 
+        <div class="home-dashboard-visual">
 
-    <div class="home-visual">
+            <div class="visual-label">
+                YOUR WARDROBE
+            </div>
 
-        <div
-            class="home-visual-main"
-            style="
-                background:
-                linear-gradient(
-                    145deg,
-                    #d7d1c7,
-                    #aaa399
-                );
-            "
-        ></div>
+            <div class="visual-center">
 
+                <span>
+                    STYLE
+                </span>
 
-        <div class="home-visual-note">
+                <strong>
+                    YOUR WAY
+                </strong>
 
-            <span>
-                Today
-            </span>
+            </div>
 
-            <strong>
-                Dress for the weather.
-            </strong>
+            <div class="visual-footer">
+                Weather-aware outfit planning
+            </div>
 
         </div>
 
-    </div>
-
-</section>
+    </section>
 
 
-<section class="home-user-section">
+    {% if user.is_authenticated %}
 
-    <div class="home-section-grid">
+        <section class="current-week-card">
 
-        <div class="home-section-item">
+            <div class="current-week-top">
 
-            <span class="home-section-number">
+                <div>
+
+                    <div class="eyebrow">
+                        THIS WEEK
+                    </div>
+
+                    {% if active_plan %}
+
+                        <h2>
+                            Your current outfits
+                        </h2>
+
+                        <p>
+                            {{ active_plan.week_start|date:"M d, Y" }}
+                            —
+                            {{ active_plan_end|date:"M d, Y" }}
+                        </p>
+
+                    {% else %}
+
+                        <h2>
+                            Plan your current week
+                        </h2>
+
+                        <p>
+                            Let AI build outfits from the clothes
+                            you already own.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if active_plan %}
+
+                    <a
+                        href="{% url 'planner:current' %}"
+                        class="modern-btn modern-btn-primary"
+                    >
+                        View current week
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{% url 'planner:create' %}"
+                        class="modern-btn modern-btn-primary"
+                    >
+                        Create outfits
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+            {% if active_plan %}
+
+                <div class="week-mini-preview">
+
+                    {% for outfit in active_plan.outfits.all %}
+
+                        <div class="week-mini-day">
+
+                            <span class="week-mini-date">
+                                {{ outfit.date|date:"d" }}
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    {{ outfit.date|date:"D" }}
+                                </strong>
+
+                                <span>
+                                    {{ outfit.title }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    {% endif %}
+
+
+    <section class="home-features">
+
+        <div class="feature-card">
+
+            <span>
                 01
             </span>
 
             <h3>
-                Your clothes
+                Your wardrobe
             </h3>
 
-            <p class="muted">
-                Keep your wardrobe organised in one place.
+            <p>
+                Keep everything you own in one organised,
+                visual collection.
             </p>
 
         </div>
 
 
-        <div class="home-section-item">
+        <div class="feature-card">
 
-            <span class="home-section-number">
+            <span>
                 02
             </span>
 
             <h3>
-                Your week
+                Weather-aware
             </h3>
 
-            <p class="muted">
-                See what makes sense for each day.
+            <p>
+                Outfit suggestions adapt to the weather
+                you're dressing for.
             </p>
 
         </div>
 
 
-        <div class="home-section-item">
+        <div class="feature-card">
 
-            <span class="home-section-number">
+            <span>
                 03
             </span>
 
             <h3>
-                Your style
+                AI styling
             </h3>
 
-            <p class="muted">
-                Build outfits from what you already own.
+            <p>
+                Build combinations from your actual clothes,
+                not imaginary pieces.
             </p>
 
         </div>
 
-    </div>
+    </section>
 
-</section>
+</div>
 
 {% endblock %}
