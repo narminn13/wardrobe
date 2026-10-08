@@ -11,7 +11,7 @@ Add Clothes
     <div class="upload-intro">
 
         <div class="eyebrow">
-            New pieces
+            NEW PIECES
         </div>
 
         <h1>
@@ -23,11 +23,10 @@ Add Clothes
             The rest happens automatically.
         </p>
 
-
         <div class="upload-tips">
 
             <div class="eyebrow">
-                Photo notes
+                PHOTO NOTES
             </div>
 
             <p>
@@ -50,7 +49,6 @@ Add Clothes
 
     </div>
 
-
     <div class="upload-area">
 
         <form
@@ -62,10 +60,12 @@ Add Clothes
 
             {{ form.non_field_errors }}
 
-
             <div class="form-group">
 
-                <label class="form-label">
+                <label
+                    for="{{ form.images.id_for_label }}"
+                    class="form-label"
+                >
                     Select images
                 </label>
 
@@ -75,12 +75,10 @@ Add Clothes
 
             </div>
 
-
             <div
                 id="uploadPreview"
                 class="upload-preview"
             ></div>
-
 
             <div class="upload-actions">
 
@@ -91,7 +89,6 @@ Add Clothes
                 >
                     Add to wardrobe
                 </button>
-
 
                 <a
                     href="{% url 'wardrobe:list' %}"

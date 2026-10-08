@@ -8,16 +8,44 @@
 
 <div class="detail-layout">
 
-    <div>
+    <div
+        class="detail-image-panel"
+        style="width:100%; max-width:520px;"
+    >
 
-        <img
-            src="{{ garment.image.url }}"
-            class="detail-image"
-            alt="{{ garment.name }}"
+        <div
+            class="detail-image-box"
+            style="
+                width:520px;
+                height:650px;
+                max-width:100%;
+                overflow:hidden;
+                border-radius:18px;
+                background:#eeece6;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+            "
         >
 
-    </div>
+            <img
+                src="{{ garment.image.url }}"
+                alt="{{ garment.name }}"
+                style="
+                    width:100%;
+                    height:100%;
+                    max-width:100%;
+                    max-height:100%;
+                    padding:30px;
+                    object-fit:contain;
+                    object-position:center;
+                    display:block;
+                "
+            >
 
+        </div>
+
+    </div>
 
     <div class="detail-content">
 
@@ -35,107 +63,66 @@
 
             </div>
 
-
             <div class="detail-status">
-
                 {{ garment.get_status_display }}
-
             </div>
 
         </div>
 
-
         <div class="detail-divider"></div>
-
 
         <div class="detail-properties">
 
             <div class="detail-property">
-
-                <span class="detail-property-label">
-                    Category
-                </span>
-
+                <span class="detail-property-label">Category</span>
                 <span class="detail-property-value">
                     {{ garment.get_category_display }}
                 </span>
-
             </div>
 
-
             <div class="detail-property">
-
-                <span class="detail-property-label">
-                    Style
-                </span>
-
+                <span class="detail-property-label">Style</span>
                 <span class="detail-property-value">
                     {{ garment.get_formality_display }}
                 </span>
-
             </div>
 
-
             <div class="detail-property">
-
-                <span class="detail-property-label">
-                    Color
-                </span>
-
+                <span class="detail-property-label">Color</span>
                 <span class="detail-property-value">
                     {{ garment.color|default:"—" }}
                 </span>
-
             </div>
 
-
             <div class="detail-property">
-
-                <span class="detail-property-label">
-                    Material
-                </span>
-
+                <span class="detail-property-label">Material</span>
                 <span class="detail-property-value">
                     {{ garment.material|default:"—" }}
                 </span>
-
             </div>
 
-
             <div class="detail-property">
-
-                <span class="detail-property-label">
-                    Pattern
-                </span>
-
+                <span class="detail-property-label">Pattern</span>
                 <span class="detail-property-value">
                     {{ garment.pattern|default:"—" }}
                 </span>
-
             </div>
 
-
             <div class="detail-property">
-
-                <span class="detail-property-label">
-                    Season
-                </span>
-
+                <span class="detail-property-label">Season</span>
                 <span class="detail-property-value">
                     {{ garment.season|default:"—" }}
                 </span>
-
             </div>
 
         </div>
-
 
         {% if garment.description %}
 
             <div class="detail-description">
 
                 <div class="eyebrow">
-                    Details
+                    DETAILS
                 </div>
 
                 <p>
@@ -146,13 +133,12 @@
 
         {% endif %}
 
-
         {% if garment.weather_suitability %}
 
             <div class="detail-description">
 
                 <div class="eyebrow">
-                    Works in
+                    WORKS IN
                 </div>
 
                 <div class="detail-tags">
@@ -171,7 +157,6 @@
 
         {% endif %}
 
-
         <div class="detail-actions">
 
             <form
@@ -185,17 +170,14 @@
                     type="submit"
                     class="btn btn-secondary"
                 >
-
                     {% if garment.status == "available" %}
                         Mark unavailable
                     {% else %}
                         Mark available
                     {% endif %}
-
                 </button>
 
             </form>
-
 
             <form
                 method="post"

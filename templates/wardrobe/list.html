@@ -8,12 +8,12 @@ My Wardrobe
 
 <div class="page-section">
 
-    <div class="page-header">
+    <header class="page-header">
 
         <div>
 
             <div class="eyebrow">
-                Collection
+                COLLECTION
             </div>
 
             <h1>
@@ -27,7 +27,6 @@ My Wardrobe
 
         </div>
 
-
         <a
             href="{% url 'wardrobe:upload' %}"
             class="btn"
@@ -35,8 +34,7 @@ My Wardrobe
             Add clothes
         </a>
 
-    </div>
-
+    </header>
 
     {% if garments %}
 
@@ -59,7 +57,6 @@ My Wardrobe
 
         </div>
 
-
         <div class="garment-grid">
 
             {% for garment in garments %}
@@ -69,16 +66,15 @@ My Wardrobe
                     class="garment-card"
                 >
 
-                    <div class="garment-image-wrapper">
+                    <div class="garment-image-box">
 
                         <img
                             src="{{ garment.image.url }}"
-                            class="garment-image"
                             alt="{{ garment.name }}"
+                            loading="lazy"
                         >
 
                     </div>
-
 
                     <div class="garment-info">
 
@@ -91,11 +87,14 @@ My Wardrobe
                             {{ garment.get_category_display }}
 
                             {% if garment.color %}
-                                · {{ garment.color }}
+
+                                <span>·</span>
+
+                                {{ garment.color }}
+
                             {% endif %}
 
                         </div>
-
 
                         {% if garment.status != "available" %}
 
@@ -113,13 +112,12 @@ My Wardrobe
 
         </div>
 
-
     {% else %}
 
         <div class="empty-state">
 
             <div class="eyebrow">
-                Nothing here yet
+                NOTHING HERE YET
             </div>
 
             <h2>

@@ -12,12 +12,16 @@
         content="width=device-width, initial-scale=1"
     >
 
+    <meta
+        name="theme-color"
+        content="#f6f4ef"
+    >
+
     <title>
         {% block title %}
         Wardrobe
         {% endblock %}
     </title>
-
 
     <link
         rel="stylesheet"
@@ -25,7 +29,6 @@
     >
 
 </head>
-
 
 <body>
 
@@ -36,27 +39,35 @@
         <a
             href="{% url 'accounts:home' %}"
             class="brand"
+            aria-label="Wardrobe home"
         >
             WARDROBE
         </a>
 
+        {% if user.is_authenticated %}
 
-        <div class="nav-links">
+            <div class="nav-links">
 
-            {% if user.is_authenticated %}
-
-                <a href="{% url 'wardrobe:list' %}">
+                <a
+                    href="{% url 'wardrobe:list' %}"
+                    class="nav-link"
+                >
                     Wardrobe
                 </a>
 
-                <a href="{% url 'planner:current' %}">
+                <a
+                    href="{% url 'planner:current' %}"
+                    class="nav-link"
+                >
                     Current week
                 </a>
 
-                <a href="{% url 'planner:create' %}">
+                <a
+                    href="{% url 'planner:create' %}"
+                    class="nav-link"
+                >
                     Planner
                 </a>
-
 
                 <div class="nav-user">
 
@@ -74,7 +85,6 @@
 
                 </div>
 
-
                 <a
                     href="{% url 'accounts:logout' %}"
                     class="nav-logout"
@@ -82,9 +92,16 @@
                     Logout
                 </a>
 
-            {% else %}
+            </div>
 
-                <a href="{% url 'accounts:login' %}">
+        {% else %}
+
+            <div class="nav-links">
+
+                <a
+                    href="{% url 'accounts:login' %}"
+                    class="nav-link"
+                >
                     Login
                 </a>
 
@@ -95,20 +112,22 @@
                     Sign up
                 </a>
 
-            {% endif %}
+            </div>
 
-        </div>
+        {% endif %}
 
     </div>
 
 </nav>
 
-
 <main class="site-main">
 
     {% if messages %}
 
-        <div class="messages">
+        <div
+            class="messages"
+            aria-live="polite"
+        >
 
             {% for message in messages %}
 
@@ -122,6 +141,7 @@
                         type="button"
                         class="message-close"
                         onclick="this.parentElement.remove()"
+                        aria-label="Close message"
                     >
                         ×
                     </button>
@@ -134,12 +154,10 @@
 
     {% endif %}
 
-
     {% block content %}
     {% endblock %}
 
 </main>
-
 
 <script src="{% static 'js/app.js' %}"></script>
 

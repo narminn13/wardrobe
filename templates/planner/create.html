@@ -11,7 +11,7 @@ Plan Your Week
     <div class="planner-intro">
 
         <div class="eyebrow">
-            Weekly planner
+            WEEKLY PLANNER
         </div>
 
         <h1>
@@ -25,7 +25,6 @@ Plan Your Week
 
     </div>
 
-
     <div class="planner-form">
 
         <form method="post">
@@ -34,10 +33,12 @@ Plan Your Week
 
             {{ form.non_field_errors }}
 
-
             <div class="form-group">
 
-                <label class="form-label">
+                <label
+                    for="{{ form.week_start.id_for_label }}"
+                    class="form-label"
+                >
                     Week starting
                 </label>
 
@@ -47,10 +48,12 @@ Plan Your Week
 
             </div>
 
-
             <div class="form-group">
 
-                <label class="form-label">
+                <label
+                    for="{{ form.city.id_for_label }}"
+                    class="form-label"
+                >
                     City
                 </label>
 
@@ -60,10 +63,12 @@ Plan Your Week
 
             </div>
 
-
             <div class="form-group">
 
-                <label class="form-label">
+                <label
+                    for="{{ form.preferred_formality.id_for_label }}"
+                    class="form-label"
+                >
                     Style
                 </label>
 
@@ -73,10 +78,12 @@ Plan Your Week
 
             </div>
 
-
             <div class="form-group">
 
-                <label class="form-label">
+                <label
+                    for="{{ form.notes.id_for_label }}"
+                    class="form-label"
+                >
                     Notes
                 </label>
 
@@ -85,7 +92,6 @@ Plan Your Week
                 {{ form.notes.errors }}
 
             </div>
-
 
             <button
                 type="submit"

@@ -13,24 +13,27 @@ Login
         <div class="auth-visual-content">
 
             <div class="eyebrow">
-                Your wardrobe
+                YOUR WARDROBE
             </div>
 
             <h1>
                 Dress for the day.
             </h1>
 
+            <p>
+                Your clothes. Your style. Your week.
+            </p>
+
         </div>
 
     </div>
-
 
     <div class="auth-form-area">
 
         <div class="auth-form">
 
             <div class="eyebrow">
-                Welcome back
+                WELCOME BACK
             </div>
 
             <h2>
@@ -41,17 +44,18 @@ Login
                 Your wardrobe is waiting.
             </p>
 
-
             <form method="post">
 
                 {% csrf_token %}
 
                 {{ form.non_field_errors }}
 
-
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <label
+                        for="{{ form.username.id_for_label }}"
+                        class="form-label"
+                    >
                         Email
                     </label>
 
@@ -61,10 +65,12 @@ Login
 
                 </div>
 
-
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <label
+                        for="{{ form.password.id_for_label }}"
+                        class="form-label"
+                    >
                         Password
                     </label>
 
@@ -74,7 +80,6 @@ Login
 
                 </div>
 
-
                 <button
                     type="submit"
                     class="btn auth-submit"
@@ -83,7 +88,6 @@ Login
                 </button>
 
             </form>
-
 
             <p class="auth-footer">
 
