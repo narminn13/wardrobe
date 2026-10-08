@@ -36,15 +36,22 @@ def weather_description(code):
         99: "Thunderstorm with heavy hail",
     }
 
-    return mapping.get(code, "Unknown")
+    return mapping.get(
+        code,
+        "Unknown",
+    )
 
 
 def get_city_coordinates(city):
     city_key = city.strip().lower()
 
-    cache_key = f"weather_coordinates:{city_key}"
+    cache_key = (
+        f"weather_coordinates:{city_key}"
+    )
 
-    cached_coordinates = cache.get(cache_key)
+    cached_coordinates = cache.get(
+        cache_key
+    )
 
     if cached_coordinates is not None:
         return cached_coordinates
@@ -62,7 +69,8 @@ def get_city_coordinates(city):
 
     if response.status_code == 429:
         raise requests.HTTPError(
-            "Weather geocoding service is temporarily rate-limited.",
+            "Weather geocoding service is temporarily "
+            "rate-limited.",
             response=response,
         )
 
@@ -70,7 +78,10 @@ def get_city_coordinates(city):
 
     data = response.json()
 
-    results = data.get("results", [])
+    results = data.get(
+        "results",
+        [],
+    )
 
     if not results:
         raise ValueError(
@@ -95,30 +106,52 @@ def get_city_coordinates(city):
 
 def _get_user_forecasts(
     user,
-    today,
+    start_date,
+    end_date,
     latitude,
     longitude,
 ):
-    end_date = today + timedelta(days=6)
-
     forecasts = list(
         WeatherForecast.objects.filter(
             user=user,
-            date__gte=today,
+            date__gte=start_date,
             date__lte=end_date,
         ).order_by("date")
     )
 
-    if len(forecasts) != 7:
+    expected_count = (
+        end_date - start_date
+    ).days + 1
+
+    if len(forecasts) != expected_count:
+        return None
+
+    expected_dates = {
+        start_date + timedelta(days=offset)
+        for offset in range(expected_count)
+    }
+
+    actual_dates = {
+        forecast.date
+        for forecast in forecasts
+    }
+
+    if actual_dates != expected_dates:
         return None
 
     tolerance = 0.01
 
     for forecast in forecasts:
         if (
-            abs(forecast.latitude - latitude)
+            abs(
+                forecast.latitude
+                - latitude
+            )
             > tolerance
-            or abs(forecast.longitude - longitude)
+            or abs(
+                forecast.longitude
+                - longitude
+            )
             > tolerance
         ):
             return None
@@ -127,22 +160,29 @@ def _get_user_forecasts(
 
 
 def _get_shared_forecasts(
-    today,
+    start_date,
+    end_date,
     latitude,
     longitude,
 ):
-    end_date = today + timedelta(days=6)
-
     tolerance = 0.01
 
     forecasts = list(
         WeatherForecast.objects.filter(
-            date__gte=today,
+            date__gte=start_date,
             date__lte=end_date,
-            latitude__gte=latitude - tolerance,
-            latitude__lte=latitude + tolerance,
-            longitude__gte=longitude - tolerance,
-            longitude__lte=longitude + tolerance,
+            latitude__gte=(
+                latitude - tolerance
+            ),
+            latitude__lte=(
+                latitude + tolerance
+            ),
+            longitude__gte=(
+                longitude - tolerance
+            ),
+            longitude__lte=(
+                longitude + tolerance
+            ),
         )
         .select_related("user")
         .order_by(
@@ -154,6 +194,15 @@ def _get_shared_forecasts(
     if not forecasts:
         return None
 
+    expected_count = (
+        end_date - start_date
+    ).days + 1
+
+    expected_dates = {
+        start_date + timedelta(days=offset)
+        for offset in range(expected_count)
+    }
+
     grouped = {}
 
     for forecast in forecasts:
@@ -163,17 +212,12 @@ def _get_shared_forecasts(
         ).append(forecast)
 
     for user_forecasts in grouped.values():
-        if len(user_forecasts) != 7:
+        if len(user_forecasts) != expected_count:
             continue
 
         dates = {
             forecast.date
             for forecast in user_forecasts
-        }
-
-        expected_dates = {
-            today + timedelta(days=offset)
-            for offset in range(7)
         }
 
         if dates == expected_dates:
@@ -185,14 +229,13 @@ def _get_shared_forecasts(
 def _copy_forecasts_for_user(
     source_forecasts,
     user,
-    today,
+    start_date,
+    end_date,
 ):
-    end_date = today + timedelta(days=6)
-
     with transaction.atomic():
         WeatherForecast.objects.filter(
             user=user,
-            date__gte=today,
+            date__gte=start_date,
             date__lte=end_date,
         ).delete()
 
@@ -204,8 +247,12 @@ def _copy_forecasts_for_user(
                 date=source.date,
                 latitude=source.latitude,
                 longitude=source.longitude,
-                temperature_min=source.temperature_min,
-                temperature_max=source.temperature_max,
+                temperature_min=(
+                    source.temperature_min
+                ),
+                temperature_max=(
+                    source.temperature_max
+                ),
                 precipitation_probability=(
                     source.precipitation_probability
                 ),
@@ -232,14 +279,20 @@ def _request_forecast(params):
         )
 
         if response.status_code == 429:
-            if attempt == max_attempts - 1:
+            if (
+                attempt
+                == max_attempts - 1
+            ):
                 raise requests.HTTPError(
-                    "Weather service is temporarily rate-limited. "
-                    "Please try again in a few minutes.",
+                    "Weather service is temporarily "
+                    "rate-limited. Please try again "
+                    "in a few minutes.",
                     response=response,
                 )
 
-            time.sleep(delays[attempt])
+            time.sleep(
+                delays[attempt]
+            )
 
             continue
 
@@ -252,7 +305,12 @@ def _request_forecast(params):
     )
 
 
-def fetch_week_weather(user, city):
+def fetch_week_weather(
+    user,
+    city,
+    start_date=None,
+    end_date=None,
+):
     if not city:
         raise ValueError(
             "City is required for weather forecast."
@@ -260,11 +318,43 @@ def fetch_week_weather(user, city):
 
     today = timezone.localdate()
 
-    latitude, longitude = get_city_coordinates(city)
+    if start_date is None:
+        start_date = today
+
+    if end_date is None:
+        end_date = (
+            start_date
+            + timedelta(days=6)
+        )
+
+    if start_date > end_date:
+        raise ValueError(
+            "Invalid weather date range."
+        )
+
+    if start_date < today:
+        raise ValueError(
+            "Weather forecast cannot start in the past."
+        )
+
+    days_needed = (
+        end_date - today
+    ).days + 1
+
+    if days_needed > 16:
+        raise ValueError(
+            "Weather forecast is not available "
+            "that far in advance."
+        )
+
+    latitude, longitude = (
+        get_city_coordinates(city)
+    )
 
     user_forecasts = _get_user_forecasts(
         user=user,
-        today=today,
+        start_date=start_date,
+        end_date=end_date,
         latitude=latitude,
         longitude=longitude,
     )
@@ -273,7 +363,8 @@ def fetch_week_weather(user, city):
         return user_forecasts
 
     shared_forecasts = _get_shared_forecasts(
-        today=today,
+        start_date=start_date,
+        end_date=end_date,
         latitude=latitude,
         longitude=longitude,
     )
@@ -282,7 +373,8 @@ def fetch_week_weather(user, city):
         return _copy_forecasts_for_user(
             source_forecasts=shared_forecasts,
             user=user,
-            today=today,
+            start_date=start_date,
+            end_date=end_date,
         )
 
     params = {
@@ -299,14 +391,25 @@ def fetch_week_weather(user, city):
             ]
         ),
         "timezone": "auto",
-        "forecast_days": 7,
+        "forecast_days": min(
+            max(days_needed, 1),
+            16,
+        ),
     }
 
-    data = _request_forecast(params)
+    data = _request_forecast(
+        params
+    )
 
-    daily = data.get("daily", {})
+    daily = data.get(
+        "daily",
+        {}
+    )
 
-    dates = daily.get("time", [])
+    dates = daily.get(
+        "time",
+        []
+    )
 
     if not dates:
         raise ValueError(
@@ -315,19 +418,35 @@ def fetch_week_weather(user, city):
 
     forecasts_data = []
 
-    for index, date_string in enumerate(dates):
+    for index, date_string in enumerate(
+        dates
+    ):
+        if (
+            date_string
+            < str(start_date)
+            or date_string
+            > str(end_date)
+        ):
+            continue
+
         weather_code = int(
-            daily["weather_code"][index]
+            daily[
+                "weather_code"
+            ][index]
         )
 
         rain_sum = float(
-            daily["rain_sum"][index] or 0
+            daily[
+                "rain_sum"
+            ][index]
+            or 0
         )
 
         precipitation_probability = int(
             daily[
                 "precipitation_probability_max"
-            ][index] or 0
+            ][index]
+            or 0
         )
 
         forecasts_data.append(
@@ -352,31 +471,49 @@ def fetch_week_weather(user, city):
                 "wind_speed": float(
                     daily[
                         "wind_speed_10m_max"
-                    ][index] or 0
+                    ][index]
+                    or 0
                 ),
                 "weather_code": weather_code,
                 "raw_data": {
-                    "description": weather_description(
-                        weather_code
+                    "description": (
+                        weather_description(
+                            weather_code
+                        )
                     )
                 },
             }
         )
 
-    WeatherForecast.objects.filter(
-        user=user,
-        date__gte=today,
-        date__lte=today + timedelta(days=6),
-    ).delete()
+    expected_count = (
+        end_date - start_date
+    ).days + 1
 
-    forecasts = []
-
-    for forecast_data in forecasts_data:
-        forecast = WeatherForecast.objects.create(
-            user=user,
-            **forecast_data,
+    if len(forecasts_data) != expected_count:
+        raise ValueError(
+            "Weather forecast is not available "
+            "for the selected week yet."
         )
 
-        forecasts.append(forecast)
+    with transaction.atomic():
+        WeatherForecast.objects.filter(
+            user=user,
+            date__gte=start_date,
+            date__lte=end_date,
+        ).delete()
+
+        forecasts = []
+
+        for forecast_data in forecasts_data:
+            forecast = (
+                WeatherForecast.objects.create(
+                    user=user,
+                    **forecast_data,
+                )
+            )
+
+            forecasts.append(
+                forecast
+            )
 
     return forecasts

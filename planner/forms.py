@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django import forms
+from django.utils import timezone
 
 from .models import WeeklyPlan
 
@@ -9,7 +12,6 @@ class WeeklyPlanForm(forms.ModelForm):
         fields = [
             "week_start",
             "city",
-            "preferred_formality",
             "notes",
         ]
 
@@ -26,11 +28,6 @@ class WeeklyPlanForm(forms.ModelForm):
                     "placeholder": "Baku",
                 }
             ),
-            "preferred_formality": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
             "notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
@@ -43,5 +40,68 @@ class WeeklyPlanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["preferred_formality"].required = False
-        self.fields["preferred_formality"].initial = "casual"
+        today = timezone.localdate()
+
+        current_week_start = (
+            today
+            - timedelta(days=today.weekday())
+        )
+
+        next_week_start = (
+            current_week_start
+            + timedelta(days=7)
+        )
+
+        next_week_end = (
+            next_week_start
+            + timedelta(days=6)
+        )
+
+        self.fields["week_start"].widget.attrs.update(
+            {
+                "min": current_week_start.isoformat(),
+                "max": next_week_end.isoformat(),
+            }
+        )
+
+    def clean_week_start(self):
+        selected_date = self.cleaned_data["week_start"]
+
+        today = timezone.localdate()
+
+        current_week_start = (
+            today
+            - timedelta(days=today.weekday())
+        )
+
+        current_week_end = (
+            current_week_start
+            + timedelta(days=6)
+        )
+
+        next_week_start = (
+            current_week_start
+            + timedelta(days=7)
+        )
+
+        next_week_end = (
+            next_week_start
+            + timedelta(days=6)
+        )
+
+        if selected_date < current_week_start:
+            raise forms.ValidationError(
+                "You can only create plans for the current "
+                "or next week."
+            )
+
+        if selected_date > next_week_end:
+            raise forms.ValidationError(
+                "You can only create plans for the current "
+                "or next week."
+            )
+
+        if selected_date <= current_week_end:
+            return current_week_start
+
+        return next_week_start

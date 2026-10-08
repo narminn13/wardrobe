@@ -13,7 +13,11 @@ Weekly Outfits
         <div>
 
             <div class="eyebrow">
-                WEEKLY OUTFITS
+                {% if selected_week == "current" %}
+                    CURRENT WEEK
+                {% else %}
+                    NEXT WEEK
+                {% endif %}
             </div>
 
             <h1>
@@ -31,10 +35,10 @@ Weekly Outfits
         </div>
 
         <a
-            href="{% url 'accounts:home' %}"
+            href="{% url 'planner:current' %}?week={{ selected_week }}"
             class="modern-btn modern-btn-light"
         >
-            Back home
+            Back to week
         </a>
 
     </header>
@@ -131,6 +135,12 @@ Weekly Outfits
 
                             </div>
 
+                        </div>
+
+                    {% empty %}
+
+                        <div class="outfit-no-items">
+                            No garments selected.
                         </div>
 
                     {% endfor %}

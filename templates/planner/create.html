@@ -15,12 +15,12 @@ Plan Your Week
         </div>
 
         <h1>
-            What are you wearing this week?
+            What are you wearing?
         </h1>
 
         <p>
-            Choose your week and preferences.
-            Your wardrobe will take it from there.
+            Choose the current or next week.
+            Your wardrobe and the weather will take it from there.
         </p>
 
     </div>
@@ -39,7 +39,7 @@ Plan Your Week
                     for="{{ form.week_start.id_for_label }}"
                     class="form-label"
                 >
-                    Week starting
+                    Week
                 </label>
 
                 {{ form.week_start }}
@@ -60,21 +60,6 @@ Plan Your Week
                 {{ form.city }}
 
                 {{ form.city.errors }}
-
-            </div>
-
-            <div class="form-group">
-
-                <label
-                    for="{{ form.preferred_formality.id_for_label }}"
-                    class="form-label"
-                >
-                    Style
-                </label>
-
-                {{ form.preferred_formality }}
-
-                {{ form.preferred_formality.errors }}
 
             </div>
 

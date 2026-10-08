@@ -1,7 +1,9 @@
 import json
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from openai import OpenAI
 
 from wardrobe.models import Garment
@@ -23,8 +25,11 @@ def build_garment_context(garments):
                 "secondary_colors": garment.secondary_colors,
                 "material": garment.material,
                 "pattern": garment.pattern,
+                "fit": garment.fit,
+                "style": garment.style,
                 "formality": garment.formality,
                 "season": garment.season,
+                "warmth": garment.warmth,
                 "weather_suitability": garment.weather_suitability,
                 "description": garment.description,
             }
@@ -33,12 +38,34 @@ def build_garment_context(garments):
     return result
 
 
+def get_plan_date_range(weekly_plan):
+    today = timezone.localdate()
+
+    week_end = (
+        weekly_plan.week_start
+        + timedelta(days=6)
+    )
+
+    if weekly_plan.week_start <= today <= week_end:
+        start_date = today
+    else:
+        start_date = weekly_plan.week_start
+
+    return start_date, week_end
+
+
 def generate_outfits(weekly_plan):
     user = weekly_plan.user
 
+    start_date, end_date = get_plan_date_range(
+        weekly_plan
+    )
+
     forecasts = fetch_week_weather(
-        user,
-        weekly_plan.city,
+        user=user,
+        city=weekly_plan.city,
+        start_date=start_date,
+        end_date=end_date,
     )
 
     garments = list(
@@ -59,7 +86,9 @@ def generate_outfits(weekly_plan):
             "Weather forecast could not be loaded."
         )
 
-    garment_context = build_garment_context(garments)
+    garment_context = build_garment_context(
+        garments
+    )
 
     weather_context = []
 
@@ -67,16 +96,22 @@ def generate_outfits(weekly_plan):
         weather_context.append(
             {
                 "date": str(forecast.date),
-                "temperature_min": forecast.temperature_min,
-                "temperature_max": forecast.temperature_max,
+                "temperature_min": (
+                    forecast.temperature_min
+                ),
+                "temperature_max": (
+                    forecast.temperature_max
+                ),
                 "rain": forecast.rain,
                 "precipitation_probability": (
                     forecast.precipitation_probability
                 ),
                 "wind_speed": forecast.wind_speed,
-                "description": forecast.raw_data.get(
-                    "description",
-                    "",
+                "description": (
+                    forecast.raw_data.get(
+                        "description",
+                        "",
+                    )
                 ),
             }
         )
@@ -84,13 +119,10 @@ def generate_outfits(weekly_plan):
     prompt = f"""
 You are an AI personal wardrobe planner.
 
-Create outfits for every forecast day.
+Create one outfit for every forecast day.
 
 User city:
 {weekly_plan.city}
-
-Preferred formality:
-{weekly_plan.preferred_formality}
 
 User notes:
 {weekly_plan.notes}
@@ -108,13 +140,17 @@ Rules:
 3. Consider temperature.
 4. Consider rain.
 5. Consider wind.
-6. Consider formality.
-7. Avoid unreasonable combinations.
-8. Try to vary outfits across the week.
-9. If a dress is selected, do not require a bottom.
-10. Shoes can be included when available.
-11. Every day must have an outfit.
-12. Do not invent garment IDs.
+6. Consider the garment's formality, style,
+   season, warmth, and weather suitability.
+7. Consider the user's notes.
+8. Avoid unreasonable combinations.
+9. Try to vary outfits across the week.
+10. If a dress is selected, do not require a bottom.
+11. Shoes can be included when available.
+12. Every forecast day must have an outfit.
+13. Do not invent garment IDs.
+14. Make the outfits practical for the weather.
+15. Make sure the selected garments work together.
 
 Return ONLY valid JSON in this format:
 
@@ -170,7 +206,7 @@ Return ONLY valid JSON in this format:
             )
         except json.JSONDecodeError as exc:
             raise ValueError(
-                f"AI returned invalid outfit data: {text}"
+                "AI returned invalid outfit data."
             ) from exc
 
     if not isinstance(data, dict):
@@ -178,7 +214,10 @@ Return ONLY valid JSON in this format:
             "AI returned invalid outfit data."
         )
 
-    outfits_data = data.get("outfits", [])
+    outfits_data = data.get(
+        "outfits",
+        [],
+    )
 
     if not isinstance(outfits_data, list):
         raise ValueError(
@@ -190,10 +229,16 @@ Return ONLY valid JSON in this format:
         for garment in garments
     }
 
+    expected_dates = {
+        forecast.date
+        for forecast in forecasts
+    }
+
     with transaction.atomic():
         weekly_plan.outfits.all().delete()
 
         created_count = 0
+        created_dates = set()
 
         for item in outfits_data:
             if not isinstance(item, dict):
@@ -205,12 +250,16 @@ Return ONLY valid JSON in this format:
                 (
                     forecast
                     for forecast in forecasts
-                    if str(forecast.date) == str(outfit_date)
+                    if str(forecast.date)
+                    == str(outfit_date)
                 ),
                 None,
             )
 
             if forecast is None:
+                continue
+
+            if forecast.date in created_dates:
                 continue
 
             outfit = Outfit.objects.create(
@@ -228,11 +277,17 @@ Return ONLY valid JSON in this format:
                         "",
                     )
                 ),
-                temperature_min=forecast.temperature_min,
-                temperature_max=forecast.temperature_max,
-                weather_summary=forecast.raw_data.get(
-                    "description",
-                    "",
+                temperature_min=(
+                    forecast.temperature_min
+                ),
+                temperature_max=(
+                    forecast.temperature_max
+                ),
+                weather_summary=(
+                    forecast.raw_data.get(
+                        "description",
+                        "",
+                    )
                 ),
             )
 
@@ -246,21 +301,34 @@ Return ONLY valid JSON in this format:
                 {},
             )
 
-            if not isinstance(garment_ids, list):
+            if not isinstance(
+                garment_ids,
+                list,
+            ):
                 garment_ids = []
 
-            if not isinstance(roles, dict):
+            if not isinstance(
+                roles,
+                dict,
+            ):
                 roles = {}
 
             for order, garment_id in enumerate(
                 garment_ids
             ):
                 try:
-                    garment_id = int(garment_id)
-                except (TypeError, ValueError):
+                    garment_id = int(
+                        garment_id
+                    )
+                except (
+                    TypeError,
+                    ValueError,
+                ):
                     continue
 
-                garment = garment_map.get(garment_id)
+                garment = garment_map.get(
+                    garment_id
+                )
 
                 if garment is None:
                     continue
@@ -277,6 +345,10 @@ Return ONLY valid JSON in this format:
                     order=order,
                 )
 
+            created_dates.add(
+                forecast.date
+            )
+
             created_count += 1
 
         if created_count == 0:
@@ -284,7 +356,19 @@ Return ONLY valid JSON in this format:
                 "AI did not generate any valid outfits."
             )
 
-        weekly_plan.status = WeeklyPlan.STATUS_GENERATED
+        missing_dates = (
+            expected_dates - created_dates
+        )
+
+        if missing_dates:
+            raise ValueError(
+                "AI did not generate an outfit "
+                "for every forecast day."
+            )
+
+        weekly_plan.status = (
+            WeeklyPlan.STATUS_GENERATED
+        )
 
         weekly_plan.save(
             update_fields=[

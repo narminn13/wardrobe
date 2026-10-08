@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-Current Week
+Weekly Outfits
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@ Current Week
         <div>
 
             <div class="eyebrow">
-                CURRENT WEEK
+                WEEKLY PLANNER
             </div>
 
             <h1>
@@ -21,154 +21,220 @@ Current Week
             </h1>
 
             <p>
-                {{ plan.week_start|date:"M d" }}
-                —
-                {{ week_end|date:"M d, Y" }}
-                ·
-                {{ plan.city }}
+                {% if selected_week == "current" %}
+                    {{ current_week_start|date:"M d" }}
+                    —
+                    {{ week_end|date:"M d, Y" }}
+                {% else %}
+                    {{ next_week_start|date:"M d" }}
+                    —
+                    {{ week_end|date:"M d, Y" }}
+                {% endif %}
             </p>
 
         </div>
 
-        <a
-            href="{% url 'planner:create' %}"
-            class="modern-btn modern-btn-light"
+        <div
+            style="
+                display:flex;
+                gap:12px;
+                align-items:center;
+                flex-wrap:wrap;
+            "
         >
-            New plan
-        </a>
+
+            <form
+                method="get"
+                style="margin:0;"
+            >
+
+                <select
+                    name="week"
+                    class="form-select"
+                    onchange="this.form.submit()"
+                    style="
+                        min-width:170px;
+                        border-radius:12px;
+                    "
+                >
+
+                    <option
+                        value="current"
+                        {% if selected_week == "current" %}
+                            selected
+                        {% endif %}
+                    >
+                        Current Week
+                    </option>
+
+                    <option
+                        value="next"
+                        {% if selected_week == "next" %}
+                            selected
+                        {% endif %}
+                    >
+                        Next Week
+                    </option>
+
+                </select>
+
+            </form>
+
+            <a
+                href="{% url 'planner:create' %}"
+                class="modern-btn modern-btn-light"
+            >
+                New plan
+            </a>
+
+        </div>
 
     </header>
 
-    <div class="outfit-grid">
+    {% if has_plan %}
 
-        {% for outfit in plan.outfits.all %}
+        <div class="outfit-grid">
 
-            <article class="outfit-card-modern">
+            {% for outfit in plan.outfits.all %}
 
-                <div class="outfit-card-date">
+                <article class="outfit-card-modern">
 
-                    <span>
-                        {{ outfit.date|date:"l" }}
-                    </span>
-
-                    <strong>
-                        {{ outfit.date|date:"d" }}
-                    </strong>
-
-                    <small>
-                        {{ outfit.date|date:"M" }}
-                    </small>
-
-                </div>
-
-                <div class="outfit-card-weather">
-
-                    {% if outfit.weather_summary %}
+                    <div class="outfit-card-date">
 
                         <span>
-                            {{ outfit.weather_summary }}
+                            {{ outfit.date|date:"l" }}
                         </span>
 
-                    {% endif %}
+                        <strong>
+                            {{ outfit.date|date:"d" }}
+                        </strong>
 
-                    {% if outfit.temperature_min is not None %}
+                        <small>
+                            {{ outfit.date|date:"M" }}
+                        </small>
 
-                        <span>
-                            {{ outfit.temperature_min|floatformat:0 }}°
-                            —
-                            {{ outfit.temperature_max|floatformat:0 }}°
-                        </span>
+                    </div>
 
-                    {% endif %}
+                    <div class="outfit-card-weather">
 
-                </div>
+                        {% if outfit.weather_summary %}
 
-                <div class="outfit-card-main">
+                            <span>
+                                {{ outfit.weather_summary }}
+                            </span>
 
-                    <h2>
-                        {{ outfit.title }}
-                    </h2>
+                        {% endif %}
 
-                    {% if outfit.explanation %}
+                        {% if outfit.temperature_min is not None %}
 
-                        <p>
-                            {{ outfit.explanation }}
-                        </p>
+                            <span>
+                                {{ outfit.temperature_min|floatformat:0 }}°
+                                —
+                                {{ outfit.temperature_max|floatformat:0 }}°
+                            </span>
 
-                    {% endif %}
+                        {% endif %}
 
-                </div>
+                    </div>
 
-                <div class="outfit-images">
+                    <div class="outfit-card-main">
 
-                    {% for item in outfit.items.all %}
+                        <h2>
+                            {{ outfit.title }}
+                        </h2>
 
-                        <div class="outfit-image-card">
+                        {% if outfit.explanation %}
 
-                            {% if item.garment.image %}
+                            <p>
+                                {{ outfit.explanation }}
+                            </p>
 
-                                <div class="outfit-image-wrapper">
+                        {% endif %}
 
-                                    <img
-                                        src="{{ item.garment.image.url }}"
-                                        alt="{{ item.garment.name }}"
-                                        loading="lazy"
-                                    >
+                    </div>
+
+                    <div class="outfit-images">
+
+                        {% for item in outfit.items.all %}
+
+                            <div class="outfit-image-card">
+
+                                {% if item.garment.image %}
+
+                                    <div class="outfit-image-wrapper">
+
+                                        <img
+                                            src="{{ item.garment.image.url }}"
+                                            alt="{{ item.garment.name }}"
+                                            loading="lazy"
+                                        >
+
+                                    </div>
+
+                                {% endif %}
+
+                                <div class="outfit-image-info">
+
+                                    <strong>
+                                        {{ item.garment.name }}
+                                    </strong>
+
+                                    <span>
+                                        {{ item.role }}
+                                    </span>
 
                                 </div>
 
-                            {% endif %}
-
-                            <div class="outfit-image-info">
-
-                                <strong>
-                                    {{ item.garment.name }}
-                                </strong>
-
-                                <span>
-                                    {{ item.role }}
-                                </span>
-
                             </div>
 
-                        </div>
+                        {% empty %}
 
-                    {% empty %}
+                            <div class="outfit-no-items">
+                                No garments selected.
+                            </div>
 
-                        <div class="outfit-no-items">
-                            No garments selected.
-                        </div>
+                        {% endfor %}
 
-                    {% endfor %}
+                    </div>
 
-                </div>
+                </article>
 
-            </article>
+            {% endfor %}
 
-        {% empty %}
+        </div>
 
-            <div class="current-week-empty">
+    {% else %}
 
-                <div class="eyebrow">
-                    NO OUTFITS
-                </div>
+        <div class="current-week-empty">
 
-                <h2>
-                    Nothing has been generated yet.
-                </h2>
-
-                <a
-                    href="{% url 'planner:create' %}"
-                    class="modern-btn modern-btn-primary"
-                >
-                    Generate outfits
-                </a>
-
+            <div class="eyebrow">
+                NO OUTFITS
             </div>
 
-        {% endfor %}
+            <h2>
+                No outfits generated yet.
+            </h2>
 
-    </div>
+            <p>
+                Generate your
+                {% if selected_week == "current" %}
+                    current week
+                {% else %}
+                    next week
+                {% endif %}
+                outfits based on your wardrobe and the weather.
+            </p>
+
+            <a
+                href="{% url 'planner:create' %}"
+                class="modern-btn modern-btn-primary"
+            >
+                Generate outfits
+            </a>
+
+        </div>
+
+    {% endif %}
 
 </div>
 

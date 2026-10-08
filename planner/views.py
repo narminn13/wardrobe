@@ -11,6 +11,39 @@ from .models import WeeklyPlan
 from .services import generate_outfits
 
 
+def get_week_starts():
+    today = timezone.localdate()
+
+    current_week_start = (
+        today
+        - timedelta(days=today.weekday())
+    )
+
+    next_week_start = (
+        current_week_start
+        + timedelta(days=7)
+    )
+
+    return (
+        today,
+        current_week_start,
+        next_week_start,
+    )
+
+
+def get_allowed_week_start(selected_week):
+    (
+        today,
+        current_week_start,
+        next_week_start,
+    ) = get_week_starts()
+
+    if selected_week == "next":
+        return next_week_start
+
+    return current_week_start
+
+
 @login_required
 def create_plan(request):
     if request.method == "POST":
@@ -25,17 +58,54 @@ def create_plan(request):
             plan.status = WeeklyPlan.STATUS_DRAFT
 
             try:
-                plan.save()
-
-            except IntegrityError:
-                messages.error(
-                    request,
-                    "You already have a plan for this week.",
+                existing_plan = WeeklyPlan.objects.get(
+                    user=request.user,
+                    week_start=plan.week_start,
                 )
 
-                return redirect(
-                    "planner:create"
+                if (
+                    existing_plan.status
+                    == WeeklyPlan.STATUS_GENERATED
+                ):
+                    messages.info(
+                        request,
+                        "You already have a plan for this week.",
+                    )
+
+                    return redirect(
+                        "planner:weekly",
+                        pk=existing_plan.pk,
+                    )
+
+                existing_plan.city = plan.city
+                existing_plan.notes = plan.notes
+                existing_plan.status = (
+                    WeeklyPlan.STATUS_DRAFT
                 )
+                existing_plan.save(
+                    update_fields=[
+                        "city",
+                        "notes",
+                        "status",
+                        "updated_at",
+                    ]
+                )
+
+                plan = existing_plan
+
+            except WeeklyPlan.DoesNotExist:
+                try:
+                    plan.save()
+
+                except IntegrityError:
+                    messages.error(
+                        request,
+                        "You already have a plan for this week.",
+                    )
+
+                    return redirect(
+                        "planner:create"
+                    )
 
             try:
                 generate_outfits(plan)
@@ -86,51 +156,81 @@ def create_plan(request):
 
 @login_required
 def current_week(request):
-    today = timezone.localdate()
+    (
+        today,
+        current_week_start,
+        next_week_start,
+    ) = get_week_starts()
 
-    plans = (
+    selected_week = request.GET.get(
+        "week",
+        "current",
+    )
+
+    if selected_week not in {
+        "current",
+        "next",
+    }:
+        selected_week = "current"
+
+    selected_week_start = get_allowed_week_start(
+        selected_week
+    )
+
+    week_end = (
+        selected_week_start
+        + timedelta(days=6)
+    )
+
+    plan = (
         WeeklyPlan.objects
         .filter(
             user=request.user,
+            week_start=selected_week_start,
             status=WeeklyPlan.STATUS_GENERATED,
-            week_start__lte=today,
         )
         .prefetch_related(
             "outfits__items__garment"
         )
-        .order_by("-week_start")
+        .first()
     )
 
-    active_plan = None
+    is_current_week = (
+        selected_week == "current"
+    )
 
-    for plan in plans:
-        week_end = plan.week_start + timedelta(days=6)
-
-        if plan.week_start <= today <= week_end:
-            active_plan = plan
-            break
-
-    if active_plan is None:
-        messages.info(
+    if plan is not None:
+        return render(
             request,
-            "You don't have a current weekly outfit plan yet.",
+            "planner/current.html",
+            {
+                "plan": plan,
+                "week_end": week_end,
+                "selected_week": selected_week,
+                "is_current_week": is_current_week,
+                "has_plan": True,
+                "today": today,
+                "current_week_start": (
+                    current_week_start
+                ),
+                "next_week_start": next_week_start,
+            },
         )
-
-        return redirect(
-            "planner:create"
-        )
-
-    week_end = (
-        active_plan.week_start
-        + timedelta(days=6)
-    )
 
     return render(
         request,
         "planner/current.html",
         {
-            "plan": active_plan,
+            "plan": None,
             "week_end": week_end,
+            "selected_week": selected_week,
+            "is_current_week": is_current_week,
+            "has_plan": False,
+            "today": today,
+            "current_week_start": (
+                current_week_start
+            ),
+            "next_week_start": next_week_start,
         },
     )
 
@@ -145,26 +245,39 @@ def weekly_plan(request, pk):
         user=request.user,
     )
 
-    today = timezone.localdate()
+    (
+        today,
+        current_week_start,
+        next_week_start,
+    ) = get_week_starts()
+
+    allowed_week_starts = {
+        current_week_start,
+        next_week_start,
+    }
+
+    if (
+        plan.week_start not in allowed_week_starts
+        or plan.status != WeeklyPlan.STATUS_GENERATED
+    ):
+        messages.info(
+            request,
+            "This weekly outfit plan is no longer available.",
+        )
+
+        return redirect(
+            "planner:current"
+        )
 
     week_end = (
         plan.week_start
         + timedelta(days=6)
     )
 
-    if (
-        today < plan.week_start
-        or today > week_end
-        or plan.status != WeeklyPlan.STATUS_GENERATED
-    ):
-        messages.info(
-            request,
-            "This weekly outfit plan is no longer active.",
-        )
-
-        return redirect(
-            "accounts:home"
-        )
+    if plan.week_start == current_week_start:
+        selected_week = "current"
+    else:
+        selected_week = "next"
 
     return render(
         request,
@@ -172,5 +285,6 @@ def weekly_plan(request, pk):
         {
             "plan": plan,
             "week_end": week_end,
+            "selected_week": selected_week,
         },
     )

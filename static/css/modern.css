@@ -192,7 +192,9 @@ p {
 
     transition:
         transform 0.2s ease,
-        opacity 0.2s ease;
+        opacity 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .btn:hover,
@@ -595,6 +597,11 @@ p {
     box-shadow: 0 0 0 3px rgba(29, 29, 27, 0.05);
 }
 
+.form-group input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
 .errorlist {
     margin: 7px 0 0;
     padding: 0;
@@ -705,12 +712,6 @@ p {
     transform: translateY(-3px);
     box-shadow: var(--shadow);
 }
-
-/*
-    IMPORTANT:
-    Every wardrobe image gets exactly the same
-    outer box size regardless of original image size.
-*/
 
 .garment-image-box {
     width: 100%;
@@ -837,12 +838,6 @@ p {
     align-items: flex-start;
     justify-content: center;
 }
-
-/*
-    IMPORTANT:
-    The detail image itself can NEVER
-    make this box larger.
-*/
 
 .detail-image-box {
     width: 520px;
@@ -1124,7 +1119,7 @@ p {
 }
 
 /* =========================
-   CURRENT WEEK
+   CURRENT / NEXT WEEK
 ========================= */
 
 .current-week-page {
@@ -1140,6 +1135,10 @@ p {
     gap: 30px;
 }
 
+.current-week-heading > div:first-child {
+    min-width: 0;
+}
+
 .current-week-heading h1 {
     margin-bottom: 10px;
 
@@ -1153,6 +1152,34 @@ p {
     color: var(--muted);
 }
 
+.current-week-heading > div:last-child {
+    flex-shrink: 0;
+}
+
+.current-week-heading select {
+    min-height: 46px;
+    padding: 10px 38px 10px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 999px;
+
+    background-color: var(--surface);
+    color: var(--text);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    outline: none;
+    cursor: pointer;
+
+    box-shadow: 0 5px 18px rgba(30, 28, 24, 0.04);
+}
+
+.current-week-heading select:focus {
+    border-color: #99958b;
+    box-shadow: 0 0 0 3px rgba(29, 29, 27, 0.05);
+}
+
 .outfit-grid {
     display: flex;
     flex-direction: column;
@@ -1160,6 +1187,7 @@ p {
 }
 
 .outfit-card-modern {
+    min-width: 0;
     padding: 28px;
 
     border-radius: var(--radius);
@@ -1314,7 +1342,9 @@ p {
 }
 
 .current-week-empty {
-    padding: 80px 30px;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 90px 35px;
 
     border: 1px dashed var(--border);
     border-radius: var(--radius);
@@ -1324,11 +1354,27 @@ p {
     text-align: center;
 }
 
-.current-week-empty h2 {
-    margin-bottom: 24px;
+.current-week-empty .eyebrow {
+    margin-bottom: 14px;
+}
 
-    font-size: 32px;
+.current-week-empty h2 {
+    margin-bottom: 12px;
+
+    font-size: clamp(28px, 4vw, 40px);
     font-weight: 500;
+}
+
+.current-week-empty p {
+    max-width: 500px;
+    margin: 0 auto 28px;
+
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.current-week-empty .modern-btn {
+    min-width: 180px;
 }
 
 /* =========================
@@ -1347,6 +1393,10 @@ p {
 
     .outfit-images {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .outfit-image-wrapper {
+        height: 280px;
     }
 
 }
@@ -1412,6 +1462,10 @@ p {
 
     .upload-tips {
         margin-top: 30px;
+    }
+
+    .current-week-heading {
+        align-items: flex-start;
     }
 
     .outfit-images {
@@ -1553,18 +1607,47 @@ p {
     .current-week-heading {
         flex-direction: column;
         align-items: flex-start;
+        gap: 20px;
     }
 
     .current-week-heading h1 {
         font-size: 48px;
     }
 
+    .current-week-heading > div:last-child {
+        width: 100%;
+    }
+
+    .current-week-heading > div:last-child form {
+        width: 100%;
+    }
+
+    .current-week-heading select {
+        width: 100%;
+    }
+
+    .current-week-heading .modern-btn {
+        width: 100%;
+    }
+
     .outfit-card-modern {
         padding: 20px;
     }
 
+    .outfit-card-main {
+        margin-top: 20px;
+    }
+
+    .outfit-card-main h2 {
+        font-size: 25px;
+    }
+
     .outfit-image-wrapper {
         height: 250px;
+    }
+
+    .current-week-empty {
+        padding: 65px 22px;
     }
 
 }
@@ -1670,8 +1753,481 @@ p {
         height: 210px;
     }
 
+    .outfit-card-date strong {
+        font-size: 32px;
+    }
+
     .outfit-card-main h2 {
         font-size: 23px;
+    }
+
+    .outfit-card-main p {
+        font-size: 13px;
+    }
+
+    .current-week-empty {
+        padding: 55px 18px;
+    }
+
+    .current-week-empty h2 {
+        font-size: 28px;
+    }
+
+}
+
+
+
+/* =========================
+   INTERACTIONS & ANIMATIONS
+========================= */
+
+@keyframes pageFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes softFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.site-main {
+    animation: pageFadeUp 0.45s ease both;
+}
+
+/* =========================
+   BUTTON INTERACTIONS
+========================= */
+
+.btn,
+.modern-btn {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        opacity 0.22s ease;
+}
+
+.btn:hover,
+.modern-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(30, 28, 24, 0.10);
+}
+
+.btn:active,
+.modern-btn:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: none;
+}
+
+.modern-btn-light:hover {
+    border-color: #c8c4ba;
+    background: #faf9f6;
+}
+
+/* =========================
+   GARMENT CARDS
+========================= */
+
+.garment-card {
+    transition:
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.garment-card .garment-image-box {
+    overflow: hidden;
+}
+
+.garment-card .garment-image-box img {
+    transition:
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.garment-card:hover {
+    transform: translateY(-6px);
+    border-color: #d2cec4;
+    box-shadow:
+        0 20px 45px rgba(30, 28, 24, 0.11);
+}
+
+.garment-card:hover .garment-image-box img {
+    transform: scale(1.045);
+}
+
+.garment-card:active {
+    transform: translateY(-2px) scale(0.995);
+}
+
+/* =========================
+   GARMENT STATUS
+========================= */
+
+.garment-status {
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.garment-card:hover .garment-status {
+    transform: translateY(-1px);
+}
+
+/* =========================
+   OUTFIT CARDS
+========================= */
+
+.outfit-card-modern {
+    transition:
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.outfit-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 22px 50px rgba(30, 28, 24, 0.10);
+}
+
+/* =========================
+   OUTFIT IMAGES
+========================= */
+
+.outfit-image-card {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.outfit-image-wrapper {
+    overflow: hidden;
+}
+
+.outfit-image-wrapper img {
+    transition:
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.outfit-image-card:hover {
+    transform: translateY(-3px);
+    border-color: #d1cdc3;
+    box-shadow:
+        0 10px 28px rgba(30, 28, 24, 0.08);
+}
+
+.outfit-image-card:hover .outfit-image-wrapper img {
+    transform: scale(1.035);
+}
+
+/* =========================
+   HOME FEATURE CARDS
+========================= */
+
+.feature-card {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: #d2cec4;
+    box-shadow:
+        0 16px 35px rgba(30, 28, 24, 0.08);
+}
+
+/* =========================
+   WEEK MINI DAYS
+========================= */
+
+.week-mini-day {
+    transition:
+        transform 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        box-shadow 0.22s ease;
+}
+
+.week-mini-day:hover {
+    transform: translateY(-3px);
+    border-color: #ccc8be;
+    background: #faf9f6;
+    box-shadow:
+        0 8px 22px rgba(30, 28, 24, 0.06);
+}
+
+/* =========================
+   FILTER LINKS
+========================= */
+
+.filter-links a {
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.filter-links a::after {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+
+    width: 0;
+    height: 1px;
+
+    background: var(--text);
+
+    transition: width 0.25s ease;
+}
+
+.filter-links a:hover::after,
+.filter-links a.active::after {
+    width: 100%;
+}
+
+/* =========================
+   NAVIGATION
+========================= */
+
+.nav-link {
+    position: relative;
+}
+
+.nav-link::after {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    bottom: -7px;
+
+    width: 0;
+    height: 1px;
+
+    background: var(--text);
+
+    transition: width 0.25s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.nav-signup {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.nav-signup:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 20px rgba(30, 28, 24, 0.12);
+}
+
+.nav-signup:active {
+    transform: scale(0.97);
+}
+
+/* =========================
+   DROPDOWNS
+========================= */
+
+.current-week-heading select {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.current-week-heading select:hover {
+    border-color: #c7c3b9;
+    transform: translateY(-1px);
+}
+
+.current-week-heading select:focus {
+    transform: translateY(-1px);
+}
+
+/* =========================
+   FORM INPUTS
+========================= */
+
+.form-control,
+.form-group input,
+.form-group select,
+.form-group textarea {
+    transition:
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.22s ease;
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    border-color: #c9c5bb;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    transform: translateY(-1px);
+}
+
+/* =========================
+   DETAIL IMAGE
+========================= */
+
+.detail-image-box {
+    transition:
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+}
+
+.detail-image-box:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 24px 55px rgba(30, 28, 24, 0.12);
+}
+
+.detail-image-box img {
+    transition:
+        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.detail-image-box:hover img {
+    transform: scale(1.025);
+}
+
+/* =========================
+   DETAIL TAGS
+========================= */
+
+.detail-tag {
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.detail-tag:hover {
+    transform: translateY(-2px);
+    background: #e6e3dc;
+    color: var(--text);
+}
+
+/* =========================
+   EMPTY STATES
+========================= */
+
+.empty-state,
+.current-week-empty {
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.empty-state:hover,
+.current-week-empty:hover {
+    border-color: #c9c5bb;
+    box-shadow:
+        0 12px 35px rgba(30, 28, 24, 0.05);
+}
+
+/* =========================
+   UPLOAD PREVIEW
+========================= */
+
+.upload-preview img {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.upload-preview img:hover {
+    transform: scale(1.025);
+    box-shadow:
+        0 8px 22px rgba(30, 28, 24, 0.10);
+}
+
+/* =========================
+   MESSAGE
+========================= */
+
+.message {
+    animation: softFade 0.35s ease both;
+}
+
+.message-close {
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.message-close:hover {
+    color: var(--text);
+    transform: rotate(90deg);
+}
+
+/* =========================
+   TOUCH DEVICES
+========================= */
+
+@media (hover: none) {
+
+    .garment-card:hover,
+    .outfit-card-modern:hover,
+    .outfit-image-card:hover,
+    .feature-card:hover,
+    .week-mini-day:hover,
+    .detail-image-box:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .garment-card:hover .garment-image-box img,
+    .outfit-image-card:hover .outfit-image-wrapper img,
+    .detail-image-box:hover img {
+        transform: none;
+    }
+
+}
+
+/* =========================
+   REDUCED MOTION
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 
 }
