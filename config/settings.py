@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import os
 
@@ -101,20 +100,24 @@ DATABASES = {
     }
 }
 
+
 OPENAI_API_KEY = os.getenv(
     "OPENAI_API_KEY",
     ""
 )
+
 
 OPENAI_MODEL = os.getenv(
     "OPENAI_MODEL",
     "gpt-5.5"
 )
 
+
 WEATHER_API_URL = os.getenv(
     "WEATHER_API_URL",
     "https://api.open-meteo.com/v1/forecast"
 )
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -161,9 +164,6 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -171,12 +171,27 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 }
 
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+STORAGES = {
+    "default": {
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+        ),
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage."
+            "CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
+
 
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
-AUTH_USER_MODEL = "accounts.User"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTH_USER_MODEL = "accounts.User"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
