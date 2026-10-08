@@ -1,4 +1,3 @@
-
 from django import forms
 
 
@@ -28,9 +27,9 @@ class MultipleFileField(forms.FileField):
 
         max_size = 8 * 1024 * 1024
 
-        if len(data) > 10:
+        if len(data) > 5:
             raise forms.ValidationError(
-                "You can upload a maximum of 10 images at once."
+                "You can upload a maximum of 5 images at once."
             )
 
         for file in data:
