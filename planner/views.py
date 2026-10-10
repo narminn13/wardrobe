@@ -1,3 +1,4 @@
+
 from datetime import timedelta
 
 from django.contrib import messages
@@ -7,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import WeeklyPlanForm
-from .models import WeeklyPlan
+from .models import Outfit, WeeklyPlan
 from .services import generate_outfits
 
 
@@ -32,11 +33,9 @@ def get_week_starts():
 
 
 def get_allowed_week_start(selected_week):
-    (
-        today,
-        current_week_start,
-        next_week_start,
-    ) = get_week_starts()
+    _, current_week_start, next_week_start = (
+        get_week_starts()
+    )
 
     if selected_week == "next":
         return next_week_start
@@ -44,16 +43,24 @@ def get_allowed_week_start(selected_week):
     return current_week_start
 
 
+def delete_expired_outfits(user):
+    today = timezone.localdate()
+
+    Outfit.objects.filter(
+        weekly_plan__user=user,
+        date__lt=today,
+    ).delete()
+
+
 @login_required
 def create_plan(request):
+    delete_expired_outfits(request.user)
+
     if request.method == "POST":
         form = WeeklyPlanForm(request.POST)
 
         if form.is_valid():
-            plan = form.save(
-                commit=False
-            )
-
+            plan = form.save(commit=False)
             plan.user = request.user
             plan.status = WeeklyPlan.STATUS_DRAFT
 
@@ -79,9 +86,7 @@ def create_plan(request):
 
                 existing_plan.city = plan.city
                 existing_plan.notes = plan.notes
-                existing_plan.status = (
-                    WeeklyPlan.STATUS_DRAFT
-                )
+                existing_plan.status = WeeklyPlan.STATUS_DRAFT
                 existing_plan.save(
                     update_fields=[
                         "city",
@@ -103,9 +108,7 @@ def create_plan(request):
                         "You already have a plan for this week.",
                     )
 
-                    return redirect(
-                        "planner:create"
-                    )
+                    return redirect("planner:create")
 
             try:
                 generate_outfits(plan)
@@ -120,9 +123,8 @@ def create_plan(request):
                     pk=plan.pk,
                 )
 
-            except Exception as exc:
+            except Exception:
                 plan.status = WeeklyPlan.STATUS_FAILED
-
                 plan.save(
                     update_fields=[
                         "status",
@@ -132,12 +134,11 @@ def create_plan(request):
 
                 messages.error(
                     request,
-                    f"Could not generate outfits: {exc}",
+                    "Could not generate outfits. Please check "
+                    "your wardrobe and try again.",
                 )
 
-                return redirect(
-                    "planner:create"
-                )
+                return redirect("planner:create")
 
         messages.error(
             request,
@@ -156,6 +157,8 @@ def create_plan(request):
 
 @login_required
 def current_week(request):
+    delete_expired_outfits(request.user)
+
     (
         today,
         current_week_start,
@@ -167,20 +170,14 @@ def current_week(request):
         "current",
     )
 
-    if selected_week not in {
-        "current",
-        "next",
-    }:
+    if selected_week not in {"current", "next"}:
         selected_week = "current"
 
     selected_week_start = get_allowed_week_start(
         selected_week
     )
 
-    week_end = (
-        selected_week_start
-        + timedelta(days=6)
-    )
+    week_end = selected_week_start + timedelta(days=6)
 
     plan = (
         WeeklyPlan.objects
@@ -189,47 +186,23 @@ def current_week(request):
             week_start=selected_week_start,
             status=WeeklyPlan.STATUS_GENERATED,
         )
-        .prefetch_related(
-            "outfits__items__garment"
-        )
+        .prefetch_related("outfits__items__garment")
         .first()
     )
 
-    is_current_week = (
-        selected_week == "current"
-    )
-
-    if plan is not None:
-        return render(
-            request,
-            "planner/current.html",
-            {
-                "plan": plan,
-                "week_end": week_end,
-                "selected_week": selected_week,
-                "is_current_week": is_current_week,
-                "has_plan": True,
-                "today": today,
-                "current_week_start": (
-                    current_week_start
-                ),
-                "next_week_start": next_week_start,
-            },
-        )
+    is_current_week = selected_week == "current"
 
     return render(
         request,
         "planner/current.html",
         {
-            "plan": None,
+            "plan": plan,
             "week_end": week_end,
             "selected_week": selected_week,
             "is_current_week": is_current_week,
-            "has_plan": False,
+            "has_plan": plan is not None,
             "today": today,
-            "current_week_start": (
-                current_week_start
-            ),
+            "current_week_start": current_week_start,
             "next_week_start": next_week_start,
         },
     )
@@ -237,6 +210,8 @@ def current_week(request):
 
 @login_required
 def weekly_plan(request, pk):
+    delete_expired_outfits(request.user)
+
     plan = get_object_or_404(
         WeeklyPlan.objects.prefetch_related(
             "outfits__items__garment"
@@ -265,19 +240,15 @@ def weekly_plan(request, pk):
             "This weekly outfit plan is no longer available.",
         )
 
-        return redirect(
-            "planner:current"
-        )
+        return redirect("planner:current")
 
-    week_end = (
-        plan.week_start
-        + timedelta(days=6)
+    week_end = plan.week_start + timedelta(days=6)
+
+    selected_week = (
+        "current"
+        if plan.week_start == current_week_start
+        else "next"
     )
-
-    if plan.week_start == current_week_start:
-        selected_week = "current"
-    else:
-        selected_week = "next"
 
     return render(
         request,

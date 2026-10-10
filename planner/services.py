@@ -1,3 +1,4 @@
+
 import json
 from datetime import timedelta
 
@@ -25,17 +26,26 @@ def build_garment_context(garments):
                 "secondary_colors": garment.secondary_colors,
                 "material": garment.material,
                 "pattern": garment.pattern,
-                "fit": garment.fit,
-                "style": garment.style,
+                "fit": getattr(garment, "fit", ""),
+                "style": getattr(garment, "style", ""),
                 "formality": garment.formality,
                 "season": garment.season,
-                "warmth": garment.warmth,
+                "warmth": getattr(garment, "warmth", ""),
                 "weather_suitability": garment.weather_suitability,
                 "description": garment.description,
             }
         )
 
     return result
+
+
+def delete_expired_outfits(user):
+    today = timezone.localdate()
+
+    Outfit.objects.filter(
+        weekly_plan__user=user,
+        date__lt=today,
+    ).delete()
 
 
 def get_plan_date_range(weekly_plan):
@@ -56,6 +66,8 @@ def get_plan_date_range(weekly_plan):
 
 def generate_outfits(weekly_plan):
     user = weekly_plan.user
+
+    delete_expired_outfits(user)
 
     start_date, end_date = get_plan_date_range(
         weekly_plan
@@ -96,22 +108,16 @@ def generate_outfits(weekly_plan):
         weather_context.append(
             {
                 "date": str(forecast.date),
-                "temperature_min": (
-                    forecast.temperature_min
-                ),
-                "temperature_max": (
-                    forecast.temperature_max
-                ),
+                "temperature_min": forecast.temperature_min,
+                "temperature_max": forecast.temperature_max,
                 "rain": forecast.rain,
                 "precipitation_probability": (
                     forecast.precipitation_probability
                 ),
                 "wind_speed": forecast.wind_speed,
-                "description": (
-                    forecast.raw_data.get(
-                        "description",
-                        "",
-                    )
+                "description": forecast.raw_data.get(
+                    "description",
+                    "",
                 ),
             }
         )
@@ -214,10 +220,7 @@ Return ONLY valid JSON in this format:
             "AI returned invalid outfit data."
         )
 
-    outfits_data = data.get(
-        "outfits",
-        [],
-    )
+    outfits_data = data.get("outfits", [])
 
     if not isinstance(outfits_data, list):
         raise ValueError(
@@ -250,8 +253,7 @@ Return ONLY valid JSON in this format:
                 (
                     forecast
                     for forecast in forecasts
-                    if str(forecast.date)
-                    == str(outfit_date)
+                    if str(forecast.date) == str(outfit_date)
                 ),
                 None,
             )
@@ -266,69 +268,35 @@ Return ONLY valid JSON in this format:
                 weekly_plan=weekly_plan,
                 date=forecast.date,
                 title=str(
-                    item.get(
-                        "title",
-                        "AI Outfit",
-                    )
+                    item.get("title", "AI Outfit")
                 )[:200],
                 explanation=str(
-                    item.get(
-                        "explanation",
-                        "",
-                    )
+                    item.get("explanation", "")
                 ),
-                temperature_min=(
-                    forecast.temperature_min
-                ),
-                temperature_max=(
-                    forecast.temperature_max
-                ),
-                weather_summary=(
-                    forecast.raw_data.get(
-                        "description",
-                        "",
-                    )
+                temperature_min=forecast.temperature_min,
+                temperature_max=forecast.temperature_max,
+                weather_summary=forecast.raw_data.get(
+                    "description",
+                    "",
                 ),
             )
 
-            garment_ids = item.get(
-                "garment_ids",
-                [],
-            )
+            garment_ids = item.get("garment_ids", [])
+            roles = item.get("roles", {})
 
-            roles = item.get(
-                "roles",
-                {},
-            )
-
-            if not isinstance(
-                garment_ids,
-                list,
-            ):
+            if not isinstance(garment_ids, list):
                 garment_ids = []
 
-            if not isinstance(
-                roles,
-                dict,
-            ):
+            if not isinstance(roles, dict):
                 roles = {}
 
-            for order, garment_id in enumerate(
-                garment_ids
-            ):
+            for order, garment_id in enumerate(garment_ids):
                 try:
-                    garment_id = int(
-                        garment_id
-                    )
-                except (
-                    TypeError,
-                    ValueError,
-                ):
+                    garment_id = int(garment_id)
+                except (TypeError, ValueError):
                     continue
 
-                garment = garment_map.get(
-                    garment_id
-                )
+                garment = garment_map.get(garment_id)
 
                 if garment is None:
                     continue
@@ -345,10 +313,7 @@ Return ONLY valid JSON in this format:
                     order=order,
                 )
 
-            created_dates.add(
-                forecast.date
-            )
-
+            created_dates.add(forecast.date)
             created_count += 1
 
         if created_count == 0:
@@ -356,9 +321,7 @@ Return ONLY valid JSON in this format:
                 "AI did not generate any valid outfits."
             )
 
-        missing_dates = (
-            expected_dates - created_dates
-        )
+        missing_dates = expected_dates - created_dates
 
         if missing_dates:
             raise ValueError(
@@ -366,9 +329,7 @@ Return ONLY valid JSON in this format:
                 "for every forecast day."
             )
 
-        weekly_plan.status = (
-            WeeklyPlan.STATUS_GENERATED
-        )
+        weekly_plan.status = WeeklyPlan.STATUS_GENERATED
 
         weekly_plan.save(
             update_fields=[
