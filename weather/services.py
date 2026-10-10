@@ -136,7 +136,11 @@ def _request_forecast(params):
                 timeout=15,
             )
 
-            if response.status_code == 429:
+            # A real requests.Response has an integer status_code.
+            # Some tests use Mock responses without configuring it.
+            status_code = getattr(response, "status_code", None)
+
+            if status_code == 429:
                 if attempt == MAX_RETRIES - 1:
                     break
 
@@ -151,7 +155,10 @@ def _request_forecast(params):
                 time.sleep(delay)
                 continue
 
-            if response.status_code >= 500:
+            if (
+                isinstance(status_code, int)
+                and status_code >= 500
+            ):
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(RETRY_DELAYS[attempt])
                     continue

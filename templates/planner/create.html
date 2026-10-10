@@ -1,94 +1,223 @@
+
 {% extends "base.html" %}
 
-{% block title %}
-Plan Your Week
-{% endblock %}
+{% block title %}Plan Your Week{% endblock %}
 
 {% block content %}
-
 <div class="planner-layout">
-
     <div class="planner-intro">
-
-        <div class="eyebrow">
-            WEEKLY PLANNER
-        </div>
-
-        <h1>
-            What are you wearing?
-        </h1>
-
+        <div class="eyebrow">WEEKLY PLANNER</div>
+        <h1>What are you wearing?</h1>
         <p>
             Choose the current or next week.
             Your wardrobe and the weather will take it from there.
         </p>
-
     </div>
 
     <div class="planner-form">
-
-        <form method="post">
-
+        <form method="post" id="planner-form">
             {% csrf_token %}
 
             {{ form.non_field_errors }}
 
-            <div class="form-group">
+            <input
+                type="hidden"
+                name="use_estimated_weather"
+                id="use-estimated-weather"
+                value="0"
+            >
 
-                <label
-                    for="{{ form.week_start.id_for_label }}"
-                    class="form-label"
-                >
+            <div class="form-group">
+                <label for="{{ form.week_start.id_for_label }}" class="form-label">
                     Week
                 </label>
-
                 {{ form.week_start }}
-
                 {{ form.week_start.errors }}
-
             </div>
 
             <div class="form-group">
-
-                <label
-                    for="{{ form.city.id_for_label }}"
-                    class="form-label"
-                >
+                <label for="{{ form.city.id_for_label }}" class="form-label">
                     City
                 </label>
-
                 {{ form.city }}
-
                 {{ form.city.errors }}
-
             </div>
 
             <div class="form-group">
-
-                <label
-                    for="{{ form.notes.id_for_label }}"
-                    class="form-label"
-                >
+                <label for="{{ form.notes.id_for_label }}" class="form-label">
                     Notes
                 </label>
-
                 {{ form.notes }}
-
                 {{ form.notes.errors }}
-
             </div>
 
-            <button
-                type="submit"
-                class="btn btn-large"
-            >
+            <button type="submit" class="btn btn-large" id="generate-week-button">
                 Generate week
             </button>
-
         </form>
-
     </div>
-
 </div>
 
+<div
+    id="weather-fallback-modal"
+    class="weather-modal-overlay"
+    {% if not show_weather_fallback_modal %}hidden{% endif %}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="weather-modal-title"
+>
+    <div class="weather-modal-card">
+        <div class="weather-modal-icon" aria-hidden="true">☁️</div>
+
+        <h2 id="weather-modal-title">Weather forecast unavailable</h2>
+
+        <p>
+            We couldn't retrieve reliable weather data for your selected
+            city and dates.
+        </p>
+
+        <p>
+            Would you like to generate outfits using approximate
+            seasonal weather estimates instead?
+        </p>
+
+        <p class="weather-modal-disclaimer">
+            Estimated conditions are not an official forecast.
+            Estimated weather values will be marked with *.
+        </p>
+
+        <div class="weather-modal-actions">
+            <button type="button" id="use-estimates-button" class="btn btn-large">
+                Yes, use estimates
+            </button>
+
+            <button type="button" id="cancel-estimates-button" class="weather-modal-cancel">
+                No, try again later
+            </button>
+        </div>
+
+        <p id="weather-cancel-message" class="weather-cancel-message" hidden>
+            No outfits were generated. You can try again later when
+            reliable weather data is available.
+        </p>
+    </div>
+</div>
+
+<style>
+    .weather-modal-overlay[hidden] {
+        display: none !important;
+    }
+
+    .weather-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(20, 24, 32, 0.58);
+        backdrop-filter: blur(5px);
+    }
+
+    .weather-modal-card {
+        width: 100%;
+        max-width: 480px;
+        padding: 30px;
+        border-radius: 22px;
+        background: #fff;
+        color: #222;
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.22);
+    }
+
+    .weather-modal-icon {
+        margin-bottom: 12px;
+        font-size: 32px;
+    }
+
+    .weather-modal-card h2 {
+        margin: 0 0 14px;
+        font-size: 25px;
+        line-height: 1.25;
+    }
+
+    .weather-modal-card p {
+        line-height: 1.6;
+    }
+
+    .weather-modal-disclaimer {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #fff5df;
+        color: #745319;
+        font-size: 13px;
+    }
+
+    .weather-modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .weather-modal-actions button {
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .weather-modal-cancel {
+        padding: 12px 16px;
+        border: 1px solid #dedede;
+        border-radius: 12px;
+        background: #fff;
+        color: #333;
+        font: inherit;
+    }
+
+    .weather-cancel-message {
+        margin-bottom: 0;
+        color: #745319;
+        font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+        .weather-modal-card {
+            padding: 23px;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("planner-form");
+    const modal = document.getElementById("weather-fallback-modal");
+    const estimatedInput = document.getElementById("use-estimated-weather");
+    const yesButton = document.getElementById("use-estimates-button");
+    const noButton = document.getElementById("cancel-estimates-button");
+    const cancelMessage = document.getElementById("weather-cancel-message");
+    const generateButton = document.getElementById("generate-week-button");
+
+    if (!form || !modal) {
+        return;
+    }
+
+    yesButton.addEventListener("click", function () {
+        estimatedInput.value = "1";
+        yesButton.disabled = true;
+        yesButton.textContent = "Generating...";
+        form.requestSubmit();
+    });
+
+    noButton.addEventListener("click", function () {
+        modal.hidden = true;
+        cancelMessage.hidden = false;
+        estimatedInput.value = "0";
+        generateButton.focus();
+    });
+
+    if (!modal.hidden) {
+        yesButton.focus();
+    }
+});
+</script>
 {% endblock %}

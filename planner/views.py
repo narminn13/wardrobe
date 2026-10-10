@@ -10,7 +10,11 @@ from django.utils import timezone
 
 from .forms import WeeklyPlanForm
 from .models import Outfit, WeeklyPlan
-from .services import delete_expired_outfits, generate_outfits
+from .services import (
+    WeatherUnavailableError,
+    delete_expired_outfits,
+    generate_outfits,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +45,10 @@ def create_plan(request):
         return render(
             request,
             "planner/create.html",
-            {"form": WeeklyPlanForm()},
+            {
+                "form": WeeklyPlanForm(),
+                "show_weather_fallback_modal": False,
+            },
         )
 
     form = WeeklyPlanForm(request.POST)
@@ -51,8 +58,15 @@ def create_plan(request):
         return render(
             request,
             "planner/create.html",
-            {"form": form},
+            {
+                "form": form,
+                "show_weather_fallback_modal": False,
+            },
         )
+
+    use_estimated_weather = (
+        request.POST.get("use_estimated_weather") == "1"
+    )
 
     plan = form.save(commit=False)
     plan.user = request.user
@@ -99,7 +113,51 @@ def create_plan(request):
         return redirect("planner:create")
 
     try:
-        generate_outfits(plan)
+        generate_outfits(
+            plan,
+            use_estimated_weather=use_estimated_weather,
+        )
+
+    except WeatherUnavailableError:
+        logger.warning(
+            "Reliable weather unavailable for plan %s.",
+            plan.pk,
+        )
+
+        if not use_estimated_weather:
+            # Keep the plan as a draft while the user chooses
+            # whether to use estimated weather.
+            plan.status = WeeklyPlan.STATUS_DRAFT
+            plan.save(
+                update_fields=["status", "updated_at"]
+            )
+
+            return render(
+                request,
+                "planner/create.html",
+                {
+                    "form": form,
+                    "show_weather_fallback_modal": True,
+                },
+            )
+
+        logger.exception(
+            "Estimated weather was unavailable for plan %s.",
+            plan.pk,
+        )
+
+        plan.status = WeeklyPlan.STATUS_FAILED
+        plan.save(
+            update_fields=["status", "updated_at"]
+        )
+
+        messages.error(
+            request,
+            "Estimated weather could not be generated. "
+            "Please try again later.",
+        )
+        return redirect("planner:create")
+
     except Exception:
         logger.exception(
             "Outfit generation failed for plan %s",
@@ -120,7 +178,12 @@ def create_plan(request):
 
     messages.success(
         request,
-        "Your weekly outfits have been generated.",
+        (
+            "Your weekly outfits have been generated using "
+            "estimated weather."
+            if use_estimated_weather
+            else "Your weekly outfits have been generated."
+        ),
     )
     return redirect("planner:weekly", pk=plan.pk)
 

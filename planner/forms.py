@@ -1,3 +1,4 @@
+
 from datetime import timedelta
 
 from django import forms
@@ -43,19 +44,10 @@ class WeeklyPlanForm(forms.ModelForm):
         today = timezone.localdate()
 
         current_week_start = (
-            today
-            - timedelta(days=today.weekday())
+            today - timedelta(days=today.weekday())
         )
-
-        next_week_start = (
-            current_week_start
-            + timedelta(days=7)
-        )
-
-        next_week_end = (
-            next_week_start
-            + timedelta(days=6)
-        )
+        next_week_start = current_week_start + timedelta(days=7)
+        next_week_end = next_week_start + timedelta(days=6)
 
         self.fields["week_start"].widget.attrs.update(
             {
@@ -70,24 +62,12 @@ class WeeklyPlanForm(forms.ModelForm):
         today = timezone.localdate()
 
         current_week_start = (
-            today
-            - timedelta(days=today.weekday())
+            today - timedelta(days=today.weekday())
         )
+        current_week_end = current_week_start + timedelta(days=6)
 
-        current_week_end = (
-            current_week_start
-            + timedelta(days=6)
-        )
-
-        next_week_start = (
-            current_week_start
-            + timedelta(days=7)
-        )
-
-        next_week_end = (
-            next_week_start
-            + timedelta(days=6)
-        )
+        next_week_start = current_week_start + timedelta(days=7)
+        next_week_end = next_week_start + timedelta(days=6)
 
         if selected_date < current_week_start:
             raise forms.ValidationError(
