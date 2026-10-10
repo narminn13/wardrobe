@@ -1,17 +1,12 @@
+
 {% extends "base.html" %}
 
-{% block title %}
-Weekly Outfits
-{% endblock %}
+{% block title %}Weekly Outfits{% endblock %}
 
 {% block content %}
-
 <div class="current-week-page">
-
     <header class="current-week-heading">
-
         <div>
-
             <div class="eyebrow">
                 {% if selected_week == "current" %}
                     CURRENT WEEK
@@ -20,18 +15,12 @@ Weekly Outfits
                 {% endif %}
             </div>
 
-            <h1>
-                Your week.
-            </h1>
+            <h1>Your week.</h1>
 
             <p>
-                {{ plan.week_start|date:"M d" }}
-                —
-                {{ week_end|date:"M d, Y" }}
-                ·
-                {{ plan.city }}
+                {{ plan.week_start|date:"M d" }} —
+                {{ week_end|date:"M d, Y" }} · {{ plan.city }}
             </p>
-
         </div>
 
         <a
@@ -40,129 +29,65 @@ Weekly Outfits
         >
             Back to week
         </a>
-
     </header>
 
     <div class="outfit-grid">
-
-        {% for outfit in plan.outfits.all %}
-
+        {% for outfit in outfits %}
             <article class="outfit-card-modern">
-
                 <div class="outfit-card-date">
-
-                    <span>
-                        {{ outfit.date|date:"l" }}
-                    </span>
-
-                    <strong>
-                        {{ outfit.date|date:"d" }}
-                    </strong>
-
-                    <small>
-                        {{ outfit.date|date:"M" }}
-                    </small>
-
+                    <span>{{ outfit.date|date:"l" }}</span>
+                    <strong>{{ outfit.date|date:"d" }}</strong>
+                    <small>{{ outfit.date|date:"M" }}</small>
                 </div>
 
                 <div class="outfit-card-weather">
-
                     {% if outfit.weather_summary %}
-
-                        <span>
-                            {{ outfit.weather_summary }}
-                        </span>
-
+                        <span>{{ outfit.weather_summary }}</span>
                     {% endif %}
 
                     {% if outfit.temperature_min is not None %}
-
                         <span>
-                            {{ outfit.temperature_min|floatformat:0 }}°
-                            —
+                            {{ outfit.temperature_min|floatformat:0 }}° —
                             {{ outfit.temperature_max|floatformat:0 }}°
                         </span>
-
                     {% endif %}
-
                 </div>
 
                 <div class="outfit-card-main">
-
-                    <h2>
-                        {{ outfit.title }}
-                    </h2>
-
+                    <h2>{{ outfit.title }}</h2>
                     {% if outfit.explanation %}
-
-                        <p>
-                            {{ outfit.explanation }}
-                        </p>
-
+                        <p>{{ outfit.explanation }}</p>
                     {% endif %}
-
                 </div>
 
                 <div class="outfit-images">
-
                     {% for item in outfit.items.all %}
-
                         <div class="outfit-image-card">
-
                             {% if item.garment.image %}
-
                                 <div class="outfit-image-wrapper">
-
                                     <img
                                         src="{{ item.garment.image.url }}"
                                         alt="{{ item.garment.name }}"
                                         loading="lazy"
                                     >
-
                                 </div>
-
                             {% endif %}
 
                             <div class="outfit-image-info">
-
-                                <strong>
-                                    {{ item.garment.name }}
-                                </strong>
-
-                                <span>
-                                    {{ item.role }}
-                                </span>
-
+                                <strong>{{ item.garment.name }}</strong>
+                                <span>{{ item.role }}</span>
                             </div>
-
                         </div>
-
                     {% empty %}
-
-                        <div class="outfit-no-items">
-                            No garments selected.
-                        </div>
-
+                        <div class="outfit-no-items">No garments selected.</div>
                     {% endfor %}
-
                 </div>
-
             </article>
-
         {% empty %}
-
             <div class="current-week-empty">
-
-                <h2>
-                    No outfits found.
-                </h2>
-
+                <h2>No outfits found.</h2>
             </div>
-
         {% endfor %}
-
     </div>
-
 </div>
-
 {% endblock %}
